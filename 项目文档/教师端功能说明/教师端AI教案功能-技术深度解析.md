@@ -266,7 +266,7 @@ AI 助手菜单组下仅有 "AI 课件助手" 一项。仅对 "教师" 角色可
 
 | # | HTTP方法 | 路径 | 方法签名 | 参数 | 说明 |
 |---|---|---|---|---|---|
-| 1 | GET | `/chat` | `chatWithManus(@RequestParam String message)` | message(必填) | 流式调用 Manus 智能体 |
+| 1 | GET | `/chat` | `doChatWithManus(@RequestParam String message)` | message(必填) | 流式调用 Manus 智能体 |
 | 2 | GET | `/download/{fileType}/{fileName}` | `downloadFile(fileType, fileName)` | fileType(word/pdf/file), fileName | 下载 Agent 生成的文件 |
 | 3 | POST | `/cleanup` | `cleanupTempFiles()` | 无 | 手动触发临时文件清理 |
 | 4 | GET | `/file-stats` | `getFileStats()` | 无 | 获取文件目录统计 |
@@ -364,9 +364,10 @@ messageList 长度 > maxMessageHistory(15) 时:
 ```
 工具返回结果长度 > maxToolResponseLength(2000) 时:
 │
-├── 保留开头 500 字符
-├── 中间替换为 "...(内容过长，已省略 XXX 字符)..."
-└── 保留结尾 500 字符
+├── 保留开头 maxToolResponseLength/2 字符（即1000字符）
+├── 中间替换为 "... (内容已压缩，原始长度: N 字符，已截断) ..."
+└── 保留结尾 (maxToolResponseLength - maxToolResponseLength/2 - 100) 字符（即900字符）
+    ⚠ 文档原描述为保留开头/结尾各500字符，实际为动态计算：headLength = maxToolResponseLength/2, tailLength = maxToolResponseLength - headLength - 100
 ```
 
 ### 3.5 ToolCallAgent — JSON 修复机制
@@ -395,10 +396,14 @@ fixToolCallArgumentsWithReflection()
 ```typescript
 isTaskCompleted(result):
 │
-├── 匹配中文完成关键词: "任务完成", "已完成", "已经完成", "全部完成"
-├── 匹配英文完成关键词: "finished", "completed", "done", "task is complete"
+├── 匹配中文完成关键词: "任务完成", "已完成", "完成", "任务结束", "已结束", "结束",
+│   "任务已全部完成", "所有任务已完成", "工作完成", "处理完成",
+│   "执行完成", "操作完成", "已完成所有", "全部完成"
+├── 匹配英文完成关键词: "finished", "completed", "done", "task completed", "all done"
 ├── 排除包含继续关键词的情况:
-│   "还需要", "接下来", "还需要继续", "but", "however", "yet"
+│   "还需要", "接下来", "下一步", "继续", "待处理"
+│   ⚠ continuationKeywords 数组中 "还需要" 被重复6次，疑为复制粘贴错误
+│   ⚠ 文档原描述含 "还需要继续"/"but"/"however"/"yet"，实际代码中不存在
 └── 仅当匹配完成关键词且不包含继续关键词时返回 true
 ```
 
@@ -441,15 +446,17 @@ writeFile(fileName, content)
 ```
 executeTerminalCommand(command)
 │
-├── Runtime.getRuntime().exec("cmd.exe /c " + command)
+├── ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command)
+│   ⚠ 文档原写 Runtime.getRuntime().exec()，实际已改为 ProcessBuilder
 │
 ├── 读取进程输出流和错误流
 │
-├── 超时: 进程执行超过60秒强制终止
+├── process.waitFor()  ⚠ 无超时参数，将无限期阻塞等待进程结束
+│   ⚠ 文档原描述"超过60秒强制终止"不正确，实际无任何超时机制
 │
 └── 返回命令输出字符串
 
-⚠ 极高危: 可执行任意系统命令
+⚠ 极高危: 可执行任意系统命令，且无超时保护
    例: "del /s /q C:\\" 或 "rm -rf /" 或 "net user hacker ..."
    无任何命令白名单或黑名单过滤
 ```
@@ -471,6 +478,8 @@ generateWordWithAlternatingTextAndImages(fileName, textContents, imagePaths)
 │   └── 图片: 插入 imagePaths 中的图片
 │
 ├── 保存到 tmp/word/{fileName}
+│   ⚠ WordGenerationTool 内含 sanitizeFileName() 方法（移除 \/:*?"<>|、空格→下划线、
+│     限制长度200字符、确保 .docx 后缀），文件名安全性有基本保障
 │
 └── 返回下载链接: "下载链接：http://{host}:{port}/api/teacher/manus/download/word/{fileName}"
     ⚠ host 和 port 从配置注入，生产环境需正确配置
@@ -619,7 +628,7 @@ manus-chat/index.vue → 用户输入消息
 ├── 前端: fetch GET /api/teacher/manus/chat?message=...
 │   ├── Headers: Authorization: Bearer {token}, Accept: text/event-stream
 │   │
-│   └── 后端: ManusTeacherController.chatWithManus(message)
+│   └── 后端: ManusTeacherController.doChatWithManus(message)
 │       │
 │       ├── 创建 YuManus 实例（每次新建）
 │       │
@@ -671,7 +680,7 @@ manus-chat/index.vue → 用户输入消息
 |---|---|---|---|
 | 1 | **TerminalOperationTool 任意命令执行** | **极高** | `executeTerminalCommand(command)` 直接执行 `cmd.exe /c {command}`，无白名单/黑名单，任意教师可通过 AI 对话执行系统级命令（删文件、创建用户等） |
 | 2 | **FileOperationTool 任意文件读写** | **极高** | `readFile`/`writeFile` 未做路径安全限制，AI Agent 可读写服务器任意文件（配置文件、数据库凭据等） |
-| 3 | **下载端点路径遍历** | 高 | `/download/{fileType}/{fileName}` 未过滤 `../`，攻击者可构造路径读取服务器任意文件（如 `../../application.yml`） |
+| 3 | **下载端点路径遍历** | 高 | `/download/{fileType}/{fileName}` 未过滤 `../`，攻击者可构造路径读取服务器任意文件（如 `../../application.yml`）。⚠ WordGenerationTool 生成的文件有 sanitizeFileName 保护，但下载端点本身未对 fileName 做路径遍历校验 |
 | 4 | **ResourceDownloadTool SSRF** | 高 | `downloadResource(url, fileName)` 可下载任意 URL 内容到服务器，存在服务端请求伪造风险（访问内网服务） |
 | 5 | **无会话状态保持** | 高 | 每次请求新建 YuManus 实例，对话历史仅存于内存，无法多轮连续对话。README 明确说明 "不支持会话状态保持" |
 | 6 | **无历史记录持久化** | 高 | 教师端 AI 对话无数据库存储，刷新页面即丢失所有对话记录，与用户端客服 AI 的 Redis+MySQL 双层持久化形成鲜明对比 |
@@ -687,6 +696,10 @@ manus-chat/index.vue → 用户输入消息
 | 16 | **课程向量化定时任务已禁用** | 低 | CourseEmbeddingScheduledTask 被整体注释，向量数据依赖课程增删改时实时同步，若同步失败无兜底机制 |
 | 17 | **临时文件依赖定时清理** | 低 | Agent 生成的 Word 文件仅在每天凌晨3点清理，大量并发使用时磁盘可能耗尽 |
 | 18 | **前端只匹配 .docx 下载** | 低 | `parseStep` 正则仅匹配 `.docx` 后缀，若 Agent 生成其他格式文件（.pdf、.txt）无法被前端识别为下载链接 |
+| 19 | **控制器方法名错误** | 低 | 文档原写 `chatWithManus`，实际控制器方法名为 `doChatWithManus`，不影响运行但影响代码定位 |
+| 20 | **TerminalOperationTool 无超时保护** | 高 | 文档原描述"60秒强制终止"，实际 `process.waitFor()` 无超时参数，恶意或卡死命令将无限期阻塞 Agent 线程 |
+| 21 | **continuationKeywords 重复项** | 低 | `isTaskCompleted` 中的 continuationKeywords 数组含6个重复的"还需要"，疑为复制粘贴错误，缺少原文档描述的"还需要继续"/"but"/"however"/"yet" |
+| 22 | **FileCleanupTool 未注册** | 低 | FileCleanupTool.java 文件存在但未在 ToolRegistration 中注册（注释说明"Agent 不需要，文件清理由定时任务处理"），7个工具列表正确但应说明此排除 |
 
 ---
 
