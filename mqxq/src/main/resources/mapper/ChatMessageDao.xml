@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.ChatMessageDao">
+
+    <resultMap type="com.jieni.mqxq.domain.entity.ChatMessage" id="ChatMessageMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="sessionId" column="session_id" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="messageType" column="message_type" jdbcType="TINYINT"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="params" column="params" jdbcType="VARCHAR"/>
+        <result property="messageOrder" column="message_order" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 批量插入消息 -->
+    <insert id="batchSave" parameterType="java.util.List">
+        INSERT INTO chat_message (session_id, user_id, message_type, content, params, message_order, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.sessionId}, #{item.userId}, #{item.messageType}, #{item.content}, #{item.params}, #{item.messageOrder}, #{item.createTime})
+        </foreach>
+    </insert>
+
+    <!-- 根据sessionId查询消息列表 -->
+    <select id="selectBySessionId" resultMap="ChatMessageMap">
+        SELECT id, session_id, user_id, message_type, content, params, message_order, create_time
+        FROM chat_message
+        WHERE session_id = #{sessionId}
+        ORDER BY message_order ASC, create_time ASC
+    </select>
+
+    <!-- 根据sessionId删除消息 -->
+    <delete id="deleteBySessionId">
+        DELETE FROM chat_message
+        WHERE session_id = #{sessionId}
+    </delete>
+
+    <!-- 根据sessionId查询消息的最大顺序号 -->
+    <select id="selectMaxOrderBySessionId" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(message_order), 0)
+        FROM chat_message
+        WHERE session_id = #{sessionId}
+    </select>
+
+</mapper>
+

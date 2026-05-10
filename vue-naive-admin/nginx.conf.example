@@ -1,0 +1,30 @@
+server {
+    listen 3200;
+    server_name 159.75.11.181;
+    
+    # 前端静态资源
+    location / {
+        root /path/to/your/dist;  # 修改为你的dist目录实际路径
+        try_files $uri $uri/ /index.html;
+        index index.html;
+    }
+    
+    # 后端API代理
+    location /api {
+        proxy_pass http://159.75.11.181:9999;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 如果后端需要处理跨域，可以添加以下配置
+        # add_header Access-Control-Allow-Origin *;
+        # add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE, OPTIONS';
+        # add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
+        
+        # 处理OPTIONS预检请求
+        if ($request_method = 'OPTIONS') {
+            return 204;
+        }
+    }
+}

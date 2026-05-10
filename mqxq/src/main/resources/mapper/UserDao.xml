@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.UserDao">
+
+    <resultMap type="com.jieni.mqxq.domain.entity.User" id="UserMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="UserMap">
+        select
+          id, username, password, name, avatar, phone, status, create_user, update_user, create_time, update_time
+        from user
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="UserMap">
+        select
+          id, username, password, name, avatar, phone, status, create_user, update_user, create_time, update_time
+        from user
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="username != null and username != ''">
+                and username = #{username}
+            </if>
+            <if test="password != null and password != ''">
+                and password = #{password}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="avatar != null and avatar != ''">
+                and avatar = #{avatar}
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone = #{phone}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="createUser != null">
+                and create_user = #{createUser}
+            </if>
+            <if test="updateUser != null">
+                and update_user = #{updateUser}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+        </where>
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from user
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="username != null and username != ''">
+                and username = #{username}
+            </if>
+            <if test="password != null and password != ''">
+                and password = #{password}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="avatar != null and avatar != ''">
+                and avatar = #{avatar}
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone = #{phone}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="createUser != null">
+                and create_user = #{createUser}
+            </if>
+            <if test="updateUser != null">
+                and update_user = #{updateUser}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into user(username, password, name, avatar, phone, status, create_user, update_user, create_time, update_time)
+        values (#{username}, #{password}, #{name}, #{avatar}, #{phone}, #{status}, #{createUser}, #{updateUser}, #{createTime}, #{updateTime})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into user(username, password, name, avatar, phone, status, create_user, update_user, create_time, update_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.username}, #{entity.password}, #{entity.name}, #{entity.avatar}, #{entity.phone}, #{entity.status}, #{entity.createUser}, #{entity.updateUser}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into user(username, password, name, avatar, phone, status, create_user, update_user, create_time, update_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.username}, #{entity.password}, #{entity.name}, #{entity.avatar}, #{entity.phone}, #{entity.status}, #{entity.createUser}, #{entity.updateUser}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+        on duplicate key update
+        username = values(username),
+        password = values(password),
+        name = values(name),
+        avatar = values(avatar),
+        phone = values(phone),
+        status = values(status),
+        create_user = values(create_user),
+        update_user = values(update_user),
+        create_time = values(create_time),
+        update_time = values(update_time)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update user
+        <set>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="avatar != null and avatar != ''">
+                avatar = #{avatar},
+            </if>
+            <if test="phone != null and phone != ''">
+                phone = #{phone},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from user where id = #{id}
+    </delete>
+
+    <!--批量删除-->
+    <delete id="deleteBatch">
+        delete from user where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--根据关键词查询用户（支持用户名/姓名/邮箱/手机号模糊查询）-->
+    <select id="queryByKeyword" resultMap="UserMap">
+        select
+            id, username, password, name, avatar, phone, status, 
+            create_user, update_user, create_time, update_time
+        from user
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (
+                    username like concat('%', #{keyword}, '%')
+                    or name like concat('%', #{keyword}, '%')
+                    or phone like concat('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <!--根据关键词和用户类型查询用户（支持用户名/姓名/手机号模糊查询）-->
+    <select id="queryByKeywordAndType" resultMap="UserMap">
+        select
+            u.id, u.username, u.password, u.name, u.avatar, u.phone, u.status, 
+            u.create_user, u.update_user, u.create_time, u.update_time
+        from user u
+        left join user_role ur on u.id = ur.user_id
+        left join role r on ur.role_id = r.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (
+                    u.username like concat('%', #{keyword}, '%')
+                    or u.name like concat('%', #{keyword}, '%')
+                    or u.phone like concat('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="userType != null and userType != ''">
+                and r.role_code = #{userType}
+            </if>
+        </where>
+        group by u.id
+        order by u.create_time desc
+    </select>
+
+    <!--根据用户类型查询用户-->
+    <select id="queryByUserType" resultMap="UserMap">
+        select
+            u.id, u.username, u.password, u.name, u.avatar, u.phone, u.status, 
+            u.create_user, u.update_user, u.create_time, u.update_time
+        from user u
+        left join user_role ur on u.id = ur.user_id
+        left join role r on ur.role_id = r.id
+        where r.role_code = #{userType}
+        group by u.id
+        order by u.create_time desc
+    </select>
+
+    <!--获取用户类型统计-->
+    <select id="getUserTypeStatistics" resultType="map">
+        select
+            r.role_code as userTypeCode,
+            r.role_name as userTypeName,
+            count(distinct u.id) as count
+        from role r
+        left join user_role ur on r.id = ur.role_id
+        left join user u on ur.user_id = u.id
+        where r.role_code in ('ADMIN', 'TEACHER', 'USER')
+        group by r.id, r.role_code, r.role_name
+        order by count desc
+    </select>
+
+    <!--根据用户名查询用户-->
+    <select id="selectByUsername" resultMap="UserMap">
+        select
+            id, username, password, name, avatar, phone, status, create_user, update_user, create_time, update_time
+        from user
+        where username = #{username}
+        limit 1
+    </select>
+
+
+    <!--根据ID查询用户（包含邮箱字段）-->
+    <select id="selectById" resultMap="UserMap">
+        select
+            id, username, password, name, avatar, phone, status, create_user, update_user, create_time, update_time
+        from user
+        where id = #{id}
+    </select>
+
+    <!--根据ID更新用户-->
+    <update id="updateById">
+        update user
+        <set>
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="avatar != null and avatar != ''">
+                avatar = #{avatar},
+            </if>
+            <if test="phone != null and phone != ''">
+                phone = #{phone},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>
+

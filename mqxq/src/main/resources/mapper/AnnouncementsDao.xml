@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.AnnouncementsDao">
+
+    <resultMap type="com.jieni.mqxq.domain.entity.Announcements" id="AnnouncementsMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="categoryId" column="category_id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="LONGVARCHAR"/>
+        <result property="publishDate" column="publish_date" jdbcType="TIMESTAMP"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 公共字段片段 - 完整字段 -->
+    <sql id="Base_Column_List">
+        id, category_id, title, content, publish_date, create_time, create_user, update_time, update_user
+    </sql>
+
+    <!-- 公共字段片段 - 简化字段（不含content） -->
+    <sql id="Simple_Column_List">
+        id, category_id, title, publish_date, create_time, create_user, update_time, update_user
+    </sql>
+
+    <!-- 公共查询条件 -->
+    <sql id="Query_Where_Clause">
+        <where>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="title != null and title != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+            <if test="createUser != null">
+                and create_user = #{createUser}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 已发布查询条件 -->
+    <sql id="Published_Where_Clause">
+        <where>
+            and publish_date is not null
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="title != null and title != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询单个 -->
+    <select id="queryById" resultMap="AnnouncementsMap">
+        select <include refid="Base_Column_List"/>
+        from announcements
+        where id = #{id}
+    </select>
+
+    <!-- 查询指定行数据 -->
+    <select id="queryAllByLimit" resultMap="AnnouncementsMap">
+        select <include refid="Base_Column_List"/>
+        from announcements
+        <include refid="Query_Where_Clause"/>
+        order by create_time desc
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from announcements
+        <include refid="Query_Where_Clause"/>
+    </select>
+
+    <!-- 新增数据 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into announcements(category_id, title, content, publish_date, create_time, create_user, update_time, update_user)
+        values (#{categoryId}, #{title}, #{content}, #{publishDate}, #{createTime}, #{createUser}, #{updateTime}, #{updateUser})
+    </insert>
+
+    <!-- 修改数据 -->
+    <update id="update">
+        update announcements
+        <set>
+            <if test="categoryId != null">
+                category_id = #{categoryId},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+            <if test="publishDate != null">
+                publish_date = #{publishDate},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!-- 通过主键删除 -->
+    <delete id="deleteById">
+        delete from announcements where id = #{id}
+    </delete>
+
+    <!-- 批量删除公告 -->
+    <delete id="batchDeleteByIds">
+        delete from announcements
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 发布公告 -->
+    <update id="publishAnnouncement">
+        update announcements
+        set publish_date = #{publishDate}
+        where id = #{id}
+    </update>
+
+    <!-- 撤回公告 -->
+    <update id="withdrawAnnouncement">
+        update announcements
+        set publish_date = null
+        where id = #{id}
+    </update>
+
+    <!-- 分页查询已发布的公告 -->
+    <select id="queryPublishedByLimit" resultMap="AnnouncementsMap">
+        select <include refid="Base_Column_List"/>
+        from announcements
+        <include refid="Published_Where_Clause"/>
+        order by publish_date desc
+    </select>
+
+    <!-- 统计已发布的公告数量 -->
+    <select id="countPublished" resultType="java.lang.Long">
+        select count(1)
+        from announcements
+        <include refid="Published_Where_Clause"/>
+    </select>
+
+    <!-- 根据ID查询已发布的公告 -->
+    <select id="queryPublishedById" resultMap="AnnouncementsMap">
+        select <include refid="Base_Column_List"/>
+        from announcements
+        where id = #{id} and publish_date is not null
+    </select>
+
+    <!-- 获取最新公告列表 -->
+    <select id="getLatestAnnouncements" resultMap="AnnouncementsMap">
+        select <include refid="Simple_Column_List"/>
+        from announcements
+        where publish_date is not null
+        order by publish_date desc
+        limit #{count}
+    </select>
+
+    <!-- 根据分类获取已发布的公告 -->
+    <select id="getPublishedByCategory" resultMap="AnnouncementsMap">
+        select <include refid="Simple_Column_List"/>
+        from announcements
+        where category_id = #{categoryId}
+          and publish_date is not null
+        order by publish_date desc
+    </select>
+
+    <!-- 搜索已发布的公告 -->
+    <select id="searchPublishedAnnouncements" resultMap="AnnouncementsMap">
+        select <include refid="Simple_Column_List"/>
+        from announcements
+        where publish_date is not null
+          and (title like concat('%', #{keyword}, '%') or content like concat('%', #{keyword}, '%'))
+        order by publish_date desc
+    </select>
+
+    <!-- 统计搜索结果的已发布公告数量 -->
+    <select id="countSearchPublished" resultType="java.lang.Long">
+        select count(1)
+        from announcements
+        where publish_date is not null
+          and (title like concat('%', #{keyword}, '%') or content like concat('%', #{keyword}, '%'))
+    </select>
+
+    <!-- 根据标题模糊查询公告 -->
+    <select id="queryByTitleLike" resultMap="AnnouncementsMap">
+        select <include refid="Simple_Column_List"/>
+        from announcements
+        where title like concat('%', #{title}, '%')
+        order by create_time desc
+    </select>
+
+    <!-- 根据创建者查询公告 -->
+    <select id="queryByCreateUser" resultMap="AnnouncementsMap">
+        select <include refid="Base_Column_List"/>
+        from announcements
+        where create_user = #{createUserId}
+        order by create_time desc
+    </select>
+
+    <!-- 获取公告统计信息 -->
+    <select id="getStatistics" resultMap="AnnouncementsMap">
+        select <include refid="Simple_Column_List"/>
+        from announcements
+        order by create_time desc
+    </select>
+
+</mapper>

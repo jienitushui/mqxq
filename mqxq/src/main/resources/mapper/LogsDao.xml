@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.LogsDao">
+
+    <select id="selectAll" resultType="com.jieni.mqxq.domain.entity.Logs">
+        select logs.*, user.name as userName from logs
+        left join user on logs.user_id = user.id
+        <where>
+            <if test="operate != null">and logs.operate = #{operate}</if>
+        </where>
+        order by logs.id desc
+    </select>
+
+    <select id="selectById" resultType="com.jieni.mqxq.domain.entity.Logs">
+        select * from logs where id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.jieni.mqxq.domain.entity.Logs" useGeneratedKeys="true" keyProperty="id">
+        insert into logs
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="module != null">module,</if>
+            <if test="operate != null">operate,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="ip != null">ip,</if>
+            <if test="time != null">time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="module != null">#{module},</if>
+            <if test="operate != null">#{operate},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="ip != null">#{ip},</if>
+            <if test="time != null">#{time},</if>
+        </trim>
+    </insert>
+
+    <delete id="deleteById">
+        delete from logs where id = #{id}
+    </delete>
+
+    <update id="updateById" parameterType="com.jieni.mqxq.domain.entity.Logs">
+        update logs
+        <set>
+            <if test="module != null">
+                module = #{module},
+            </if>
+            <if test="operate != null">
+                operate = #{operate},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="ip != null">
+                ip = #{ip},
+            </if>
+            <if test="time != null">
+                time = #{time},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

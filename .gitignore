@@ -1,0 +1,15 @@
+# 后端 (mqxq)
+mqxq/.git/
+mqxq/.idea/
+mqxq/.mvn/
+mqxq/target/
+
+# 前端 (mqxq-front & vue-naive-admin)
+**/.vscode/
+**/dist/
+**/node_modules/
+
+# 通用
+*.iml
+*.iws
+*.ipr

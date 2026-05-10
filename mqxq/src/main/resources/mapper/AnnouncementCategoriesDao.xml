@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.AnnouncementCategoriesDao">
+
+    <resultMap type="com.jieni.mqxq.domain.entity.AnnouncementCategories" id="AnnouncementCategoriesMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 公共字段片段 -->
+    <sql id="Base_Column_List">
+        id, name, description, create_time, create_user, update_time, update_user
+    </sql>
+
+    <!-- 公共查询条件 -->
+    <sql id="Query_Where_Clause">
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="description != null and description != ''">
+                and description like concat('%', #{description}, '%')
+            </if>
+            <if test="createUser != null">
+                and create_user = #{createUser}
+            </if>
+            <if test="updateUser != null">
+                and update_user = #{updateUser}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询单个 -->
+    <select id="queryById" resultMap="AnnouncementCategoriesMap">
+        select <include refid="Base_Column_List"/>
+        from announcement_categories
+        where id = #{id}
+    </select>
+
+    <!-- 查询指定行数据 -->
+    <select id="queryAllByLimit" resultMap="AnnouncementCategoriesMap">
+        select <include refid="Base_Column_List"/>
+        from announcement_categories
+        <include refid="Query_Where_Clause"/>
+        order by create_time desc
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from announcement_categories
+        <include refid="Query_Where_Clause"/>
+    </select>
+
+    <!-- 新增所有列 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into announcement_categories(name, description, create_time, create_user, update_time, update_user)
+        values (#{name}, #{description}, #{createTime}, #{createUser}, #{updateTime}, #{updateUser})
+    </insert>
+
+    <!-- 通过主键修改数据 -->
+    <update id="update">
+        update announcement_categories
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!-- 通过主键删除 -->
+    <delete id="deleteById">
+        delete from announcement_categories where id = #{id}
+    </delete>
+
+    <!-- 查询所有公告分类 -->
+    <select id="queryAll" resultMap="AnnouncementCategoriesMap">
+        select <include refid="Base_Column_List"/>
+        from announcement_categories
+        order by create_time desc
+    </select>
+
+    <!-- 根据分类名称查询分类 -->
+    <select id="queryByName" resultMap="AnnouncementCategoriesMap">
+        select <include refid="Base_Column_List"/>
+        from announcement_categories
+        where name = #{name}
+        limit 1
+    </select>
+
+    <!-- 检查分类名称是否已存在 -->
+    <select id="existsByName" resultType="java.lang.Boolean">
+        select count(1) > 0
+        from announcement_categories
+        where name = #{name}
+    </select>
+
+</mapper>

@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.MyCourseDao">
+
+    <!-- 基础结果映射 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.MyCourse" id="MyCourseMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="courseId" column="course_id" jdbcType="INTEGER"/>
+        <result property="orderId" column="order_id" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 扩展结果映射，包含用户和课程信息 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.MyCourse" id="MyCourseExtendMap" extends="MyCourseMap">
+        <result property="userNickname" column="user_nickname" jdbcType="VARCHAR"/>
+        <result property="userAvatar" column="user_avatar" jdbcType="VARCHAR"/>
+        <result property="courseName" column="course_name" jdbcType="VARCHAR"/>
+        <result property="courseCover" column="course_image" jdbcType="VARCHAR"/>
+        <result property="teacherName" column="teacher_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 通用查询条件 SQL片段 -->
+    <sql id="commonWhereConditions">
+        <where>
+            <if test="params.id != null">
+                AND mc.id = #{params.id}
+            </if>
+            <if test="params.userId != null">
+                AND mc.user_id = #{params.userId}
+            </if>
+            <if test="params.courseId != null">
+                AND mc.course_id = #{params.courseId}
+            </if>
+            <if test="params.orderId != null">
+                AND mc.order_id = #{params.orderId}
+            </if>
+            <if test="params.status != null">
+                AND mc.status = #{params.status}
+            </if>
+            <if test="params.teacherId != null">
+                AND c.create_user = #{params.teacherId}
+            </if>
+            <if test="params.userNickname != null and params.userNickname != ''">
+                AND u.name LIKE CONCAT('%', #{params.userNickname}, '%')
+            </if>
+            <if test="params.courseName != null and params.courseName != ''">
+                AND c.title LIKE CONCAT('%', #{params.courseName}, '%')
+            </if>
+            <if test="params.studentName != null and params.studentName != ''">
+                AND u.name LIKE CONCAT('%', #{params.studentName}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 通过ID查询单条数据（包含详细信息） -->
+    <select id="queryById" resultMap="MyCourseExtendMap">
+        SELECT
+            mc.id, mc.user_id, mc.course_id, mc.order_id, mc.status, mc.create_time, mc.update_time,
+            u.name AS user_nickname, u.avatar AS user_avatar,
+            c.title AS course_name, c.cover AS course_image,
+            t.name AS teacher_name
+        FROM my_course mc
+        LEFT JOIN user u ON mc.user_id = u.id
+        LEFT JOIN course c ON mc.course_id = c.id
+        LEFT JOIN user t ON c.create_user = t.id
+        WHERE mc.id = #{id}
+    </select>
+
+
+    <!-- 根据条件查询列表 -->
+    <select id="queryListByConditions" resultMap="MyCourseExtendMap">
+        SELECT
+            mc.id, mc.user_id, mc.course_id, mc.order_id, mc.status, mc.create_time, mc.update_time,
+            u.name AS user_nickname, u.avatar AS user_avatar,
+            c.title AS course_name, c.cover AS course_image,
+            t.name AS teacher_name
+        FROM my_course mc
+        LEFT JOIN user u ON mc.user_id = u.id
+        LEFT JOIN course c ON mc.course_id = c.id
+        LEFT JOIN user t ON c.create_user = t.id
+        <include refid="commonWhereConditions"/>
+        ORDER BY mc.create_time DESC
+    </select>
+
+    <!-- 统计符合条件的记录数 -->
+    <select id="countByConditions" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM my_course mc
+        LEFT JOIN user u ON mc.user_id = u.id
+        LEFT JOIN course c ON mc.course_id = c.id
+        <include refid="commonWhereConditions"/>
+    </select>
+
+    <!-- 新增数据 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO my_course(user_id, course_id, order_id, status, create_time, update_time)
+        VALUES (#{userId}, #{courseId}, #{orderId}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <!-- 批量新增数据 -->
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO my_course(user_id, course_id, order_id, status, create_time, update_time)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.userId}, #{entity.courseId}, #{entity.orderId}, #{entity.status}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+    </insert>
+
+    <!-- 修改数据 -->
+    <update id="update">
+        UPDATE my_course
+        <set>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="courseId != null">
+                course_id = #{courseId},
+            </if>
+            <if test="orderId != null">
+                order_id = #{orderId},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 通过主键删除数据 -->
+    <delete id="deleteById">
+        DELETE FROM my_course WHERE id = #{id}
+    </delete>
+
+    <!-- 批量删除数据 -->
+    <delete id="deleteBatchByIds">
+        DELETE FROM my_course
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 根据用户ID和课程ID查询我的课程 -->
+    <select id="queryByUserIdAndCourseId" resultMap="MyCourseMap">
+        SELECT
+            id, user_id, course_id, order_id, status, create_time, update_time
+        FROM my_course
+        WHERE user_id = #{userId} AND course_id = #{courseId}
+        LIMIT 1
+    </select>
+
+    <!-- ========== 兼容性方法映射（调用新方法实现） ========== -->
+
+    <!-- 根据参数查询（兼容性方法） -->
+    <select id="queryByParams" resultMap="MyCourseMap">
+        SELECT
+            id, user_id, course_id, order_id, status, create_time, update_time
+        FROM my_course
+        <where>
+            <if test="params.userId != null">
+                AND user_id = #{params.userId}
+            </if>
+            <if test="params.courseId != null">
+                AND course_id = #{params.courseId}
+            </if>
+            <if test="params.status != null">
+                AND status = #{params.status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 查询指定行数据（兼容性方法） -->
+    <select id="queryAllByLimit" resultMap="MyCourseMap">
+        SELECT
+            id, user_id, course_id, order_id, status, create_time, update_time
+        FROM my_course
+        <where>
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="courseId != null">
+                AND course_id = #{courseId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 统计总行数（兼容性方法） -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM my_course
+        <where>
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="courseId != null">
+                AND course_id = #{courseId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据课程ID和用户ID查询（兼容性方法） -->
+    <select id="queryByCourseAndUser" resultMap="MyCourseMap">
+        SELECT
+            id, user_id, course_id, order_id, status, create_time, update_time
+        FROM my_course
+        WHERE course_id = #{courseId} AND user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <!-- 根据课程ID查询所有学员（兼容性方法） -->
+    <select id="queryByCourseId" resultMap="MyCourseMap">
+        SELECT
+            id, user_id, course_id, order_id, status, create_time, update_time
+        FROM my_course
+        WHERE course_id = #{courseId}
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>
+

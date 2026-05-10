@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.CourseHomeworkDao">
+
+    <!-- 基础结果映射 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.CourseHomework" id="CourseHomeworkMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="courseId" column="course_id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="answer" column="answer" jdbcType="VARCHAR"/>
+        <result property="score" column="score" jdbcType="INTEGER"/>
+        <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
+        <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 扩展结果映射，包含课程和教师信息 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.CourseHomework" id="CourseHomeworkExtendMap" extends="CourseHomeworkMap">
+        <result property="courseName" column="course_name" jdbcType="VARCHAR"/>
+        <result property="teacherName" column="teacher_name" jdbcType="VARCHAR"/>
+        <result property="submissionCount" column="submission_count" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 基础字段列 -->
+    <sql id="Base_Column_List">
+        id, course_id, title, content, answer, score, start_time, end_time, 
+        status, create_user, create_time, update_user, update_time
+    </sql>
+
+    <!-- 扩展字段列（包含课程和教师信息） -->
+    <sql id="Extend_Column_List">
+        ch.id, ch.course_id, ch.title, ch.content, ch.answer, ch.score, 
+        ch.start_time, ch.end_time, ch.status, ch.create_user, ch.create_time, 
+        ch.update_user, ch.update_time,
+        c.title as course_name,
+        u.username as teacher_name,
+        (SELECT COUNT(*) FROM homework_submission hs WHERE hs.homework_id = ch.id) as submission_count
+    </sql>
+
+    <!-- 通用查询条件 -->
+    <sql id="Where_Clause">
+        <where>
+            <if test="params.id != null">
+                AND id = #{params.id}
+            </if>
+            <if test="params.courseId != null">
+                AND course_id = #{params.courseId}
+            </if>
+            <if test="params.title != null and params.title != ''">
+                AND title LIKE CONCAT('%', #{params.title}, '%')
+            </if>
+            <if test="params.status != null">
+                AND status = #{params.status}
+            </if>
+            <if test="params.createUser != null">
+                AND create_user = #{params.createUser}
+            </if>
+            <if test="params.courseIds != null and params.courseIds.size() > 0">
+                AND course_id IN
+                <foreach collection="params.courseIds" item="courseId" open="(" separator="," close=")">
+                    #{courseId}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询单个作业 -->
+    <select id="queryById" resultMap="CourseHomeworkMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM course_homework
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据参数查询作业列表 -->
+    <select id="queryByParams" resultMap="CourseHomeworkMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM course_homework
+        <include refid="Where_Clause"/>
+        <if test="params.orderBy != null and params.orderBy != ''">
+            ORDER BY ${params.orderBy}
+        </if>
+        <if test="params.orderBy == null or params.orderBy == ''">
+            ORDER BY create_time DESC
+        </if>
+    </select>
+
+    <!-- 管理员查询作业（包含课程和教师信息） -->
+    <select id="queryForAdmin" resultMap="CourseHomeworkExtendMap">
+        SELECT <include refid="Extend_Column_List"/>
+        FROM course_homework ch
+        LEFT JOIN course c ON ch.course_id = c.id
+        LEFT JOIN user u ON ch.create_user = u.id
+        <where>
+            <if test="params.id != null">
+                AND ch.id = #{params.id}
+            </if>
+            <if test="params.courseId != null">
+                AND ch.course_id = #{params.courseId}
+            </if>
+            <if test="params.title != null and params.title != ''">
+                AND ch.title LIKE CONCAT('%', #{params.title}, '%')
+            </if>
+            <if test="params.status != null">
+                AND ch.status = #{params.status}
+            </if>
+            <if test="params.createUser != null">
+                AND ch.create_user = #{params.createUser}
+            </if>
+            <if test="params.courseName != null and params.courseName != ''">
+                AND c.title LIKE CONCAT('%', #{params.courseName}, '%')
+            </if>
+            <if test="params.teacherName != null and params.teacherName != ''">
+                AND u.username LIKE CONCAT('%', #{params.teacherName}, '%')
+            </if>
+        </where>
+        ORDER BY ch.create_time DESC
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="countByParams" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM course_homework
+        <include refid="Where_Clause"/>
+    </select>
+
+    <!-- 新增作业 -->
+    <insert id="insert" keyProperty="homework.id" useGeneratedKeys="true">
+        INSERT INTO course_homework(
+            course_id, title, content, answer, score, start_time, end_time, 
+            status, create_user, create_time, update_user, update_time
+        )
+        VALUES (
+            #{homework.courseId}, #{homework.title}, #{homework.content}, #{homework.answer}, 
+            #{homework.score}, #{homework.startTime}, #{homework.endTime}, #{homework.status}, 
+            #{homework.createUser}, #{homework.createTime}, #{homework.updateUser}, #{homework.updateTime}
+        )
+    </insert>
+
+    <!-- 更新作业 -->
+    <update id="update">
+        UPDATE course_homework
+        <set>
+            <if test="homework.courseId != null">
+                course_id = #{homework.courseId},
+            </if>
+            <if test="homework.title != null and homework.title != ''">
+                title = #{homework.title},
+            </if>
+            <if test="homework.content != null">
+                content = #{homework.content},
+            </if>
+            <if test="homework.answer != null">
+                answer = #{homework.answer},
+            </if>
+            <if test="homework.score != null">
+                score = #{homework.score},
+            </if>
+            <if test="homework.startTime != null">
+                start_time = #{homework.startTime},
+            </if>
+            <if test="homework.endTime != null">
+                end_time = #{homework.endTime},
+            </if>
+            <if test="homework.status != null">
+                status = #{homework.status},
+            </if>
+            <if test="homework.updateUser != null">
+                update_user = #{homework.updateUser},
+            </if>
+            <if test="homework.updateTime != null">
+                update_time = #{homework.updateTime},
+            </if>
+        </set>
+        WHERE id = #{homework.id}
+    </update>
+
+    <!-- 删除作业 -->
+    <delete id="deleteById">
+        DELETE FROM course_homework 
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 批量删除作业 -->
+    <delete id="batchDelete">
+        DELETE FROM course_homework
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 批量更新状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE course_homework
+        SET status = #{status},
+            update_user = #{updateUser},
+            update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 查询即将截止的作业 -->
+    <select id="queryUpcomingDeadline" resultMap="CourseHomeworkMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM course_homework
+        WHERE create_user = #{createUser}
+        AND status = #{status}
+        AND end_time BETWEEN #{endTimeStart} AND #{endTimeEnd}
+        ORDER BY end_time ASC
+    </select>
+
+    <!-- 获取教师作业排行 -->
+    <select id="getTeacherHomeworkRank" resultType="java.util.Map">
+        SELECT 
+            u.id as teacherId,
+            u.username as teacherName,
+            COUNT(ch.id) as homeworkCount,
+            SUM(CASE WHEN ch.status = 1 THEN 1 ELSE 0 END) as publishedCount
+        FROM course_homework ch
+        LEFT JOIN user u ON ch.create_user = u.id
+        GROUP BY u.id, u.username
+        ORDER BY homeworkCount DESC
+        LIMIT 10
+    </select>
+
+    <!-- 获取课程作业排行 -->
+    <select id="getCourseHomeworkRank" resultType="java.util.Map">
+        SELECT 
+            c.id as courseId,
+            c.title as courseName,
+            COUNT(ch.id) as homeworkCount,
+            SUM(CASE WHEN ch.status = 1 THEN 1 ELSE 0 END) as publishedCount
+        FROM course_homework ch
+        LEFT JOIN course c ON ch.course_id = c.id
+        GROUP BY c.id, c.title
+        ORDER BY homeworkCount DESC
+        LIMIT 10
+    </select>
+
+    <!-- 获取作业趋势分析 -->
+    <select id="getHomeworkTrendAnalysis" resultType="java.util.Map">
+        SELECT 
+            DATE(create_time) as date,
+            COUNT(id) as homeworkCount,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as publishedCount
+        FROM course_homework
+        WHERE create_time >= #{startDate}
+        GROUP BY DATE(create_time)
+        ORDER BY date ASC
+    </select>
+
+    <!-- 获取作业统计信息 -->
+    <select id="getHomeworkStatistics" resultType="java.util.Map">
+        SELECT 
+            COUNT(id) as totalHomework,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as publishedHomework,
+            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as draftHomework,
+            SUM(CASE WHEN DATE(create_time) = CURDATE() THEN 1 ELSE 0 END) as todayHomework
+        FROM course_homework
+    </select>
+
+</mapper>

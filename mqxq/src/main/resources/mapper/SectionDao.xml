@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.SectionDao">
+
+    <resultMap type="com.jieni.mqxq.domain.entity.Section" id="SectionMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="chapterId" column="chapter_id" jdbcType="INTEGER"/>
+        <result property="courseId" column="course_id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="videoUrl" column="video_url" jdbcType="VARCHAR"/>
+        <result property="duration" column="duration" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, chapter_id, course_id, title, content, video_url, duration, status,
+        create_time, create_user, update_time, update_user
+    </sql>
+
+    <!-- 通用WHERE条件 -->
+    <sql id="Where_Clause">
+        <where>
+            <if test="section.id != null">
+                AND id = #{section.id}
+            </if>
+            <if test="section.chapterId != null">
+                AND chapter_id = #{section.chapterId}
+            </if>
+            <if test="section.courseId != null">
+                AND course_id = #{section.courseId}
+            </if>
+            <if test="section.title != null and section.title != ''">
+                AND title LIKE CONCAT('%', #{section.title}, '%')
+            </if>
+            <if test="section.content != null and section.content != ''">
+                AND content LIKE CONCAT('%', #{section.content}, '%')
+            </if>
+            <if test="section.status != null">
+                AND status = #{section.status}
+            </if>
+            <if test="section.createUser != null">
+                AND create_user = #{section.createUser}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询单个 -->
+    <select id="queryById" resultMap="SectionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM section
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询指定行数据 -->
+    <select id="queryAllByLimit" resultMap="SectionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM section
+        <include refid="Where_Clause"/>
+        ORDER BY chapter_id ASC, id ASC
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM section
+        <include refid="Where_Clause"/>
+    </select>
+
+    <!-- 新增所有列 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO section(chapter_id, course_id, title, content, video_url, duration, status,
+                           create_time, create_user, update_time, update_user)
+        VALUES (#{chapterId}, #{courseId}, #{title}, #{content}, #{videoUrl}, #{duration}, #{status},
+                #{createTime}, #{createUser}, #{updateTime}, #{updateUser})
+    </insert>
+
+    <!-- 批量新增 -->
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO section(chapter_id, course_id, title, content, video_url, duration, status,
+                           create_time, create_user, update_time, update_user)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.chapterId}, #{entity.courseId}, #{entity.title}, #{entity.content},
+             #{entity.videoUrl}, #{entity.duration}, #{entity.status},
+             #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser})
+        </foreach>
+    </insert>
+
+    <!-- 批量新增或更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO section(chapter_id, course_id, title, content, video_url, duration, status,
+                           create_time, create_user, update_time, update_user)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.chapterId}, #{entity.courseId}, #{entity.title}, #{entity.content},
+             #{entity.videoUrl}, #{entity.duration}, #{entity.status},
+             #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        chapter_id = VALUES(chapter_id),
+        course_id = VALUES(course_id),
+        title = VALUES(title),
+        content = VALUES(content),
+        video_url = VALUES(video_url),
+        duration = VALUES(duration),
+        status = VALUES(status),
+        update_time = VALUES(update_time),
+        update_user = VALUES(update_user)
+    </insert>
+
+    <!-- 通过主键修改数据 -->
+    <update id="update">
+        UPDATE section
+        <set>
+            <if test="chapterId != null">
+                chapter_id = #{chapterId},
+            </if>
+            <if test="courseId != null">
+                course_id = #{courseId},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+            <if test="videoUrl != null">
+                video_url = #{videoUrl},
+            </if>
+            <if test="duration != null">
+                duration = #{duration},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 通过主键删除 -->
+    <delete id="deleteById">
+        DELETE FROM section WHERE id = #{id}
+    </delete>
+
+</mapper>

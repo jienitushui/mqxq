@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.CarouselDao">
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, carousel_url, link_url, sort, is_deleted, create_time, create_user, update_time, update_user
+    </sql>
+
+    <!-- 通用查询条件 -->
+    <sql id="Base_Where_Clause">
+        <where>
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="carouselUrl != null and carouselUrl != ''">
+                AND carousel_url LIKE CONCAT('%', #{carouselUrl}, '%')
+            </if>
+            <if test="linkUrl != null and linkUrl != ''">
+                AND link_url LIKE CONCAT('%', #{linkUrl}, '%')
+            </if>
+            <if test="sort != null">
+                AND sort = #{sort}
+            </if>
+            <if test="isDeleted != null">
+                AND is_deleted = #{isDeleted}
+            </if>
+            <if test="createUser != null">
+                AND create_user = #{createUser}
+            </if>
+            <if test="updateUser != null">
+                AND update_user = #{updateUser}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 结果映射 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.Carousel" id="CarouselMap">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="carouselUrl" column="carousel_url" jdbcType="VARCHAR"/>
+        <result property="linkUrl" column="link_url" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 根据ID查询单条数据 -->
+    <select id="queryById" resultMap="CarouselMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM carousel
+        WHERE id = #{id}
+    </select>
+
+    <!-- 条件查询 -->
+    <select id="queryAllByLimit" resultMap="CarouselMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM carousel
+        <include refid="Base_Where_Clause"/>
+        ORDER BY sort ASC, create_time DESC
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM carousel
+        <include refid="Base_Where_Clause"/>
+    </select>
+
+    <!-- 新增数据 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO carousel(carousel_url, link_url, sort, is_deleted, create_time, create_user, update_time, update_user)
+        VALUES (#{carouselUrl}, #{linkUrl}, #{sort}, #{isDeleted}, #{createTime}, #{createUser}, #{updateTime}, #{updateUser})
+    </insert>
+
+    <!-- 批量新增数据 -->
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO carousel(carousel_url, link_url, sort, is_deleted, create_time, create_user, update_time, update_user)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.carouselUrl}, #{entity.linkUrl}, #{entity.sort}, #{entity.isDeleted}, 
+             #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser})
+        </foreach>
+    </insert>
+
+    <!-- 批量新增或更新数据 -->
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO carousel(carousel_url, link_url, sort, is_deleted, create_time, create_user, update_time, update_user)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.carouselUrl}, #{entity.linkUrl}, #{entity.sort}, #{entity.isDeleted}, 
+             #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            carousel_url = VALUES(carousel_url),
+            link_url = VALUES(link_url),
+            sort = VALUES(sort),
+            is_deleted = VALUES(is_deleted),
+            update_time = VALUES(update_time),
+            update_user = VALUES(update_user)
+    </insert>
+
+    <!-- 更新数据 -->
+    <update id="update">
+        UPDATE carousel
+        <set>
+            <if test="carouselUrl != null and carouselUrl != ''">
+                carousel_url = #{carouselUrl},
+            </if>
+            <if test="linkUrl != null">
+                link_url = #{linkUrl},
+            </if>
+            <if test="sort != null">
+                sort = #{sort},
+            </if>
+            <if test="isDeleted != null">
+                is_deleted = #{isDeleted},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 物理删除 -->
+    <delete id="deleteById">
+        DELETE FROM carousel WHERE id = #{id}
+    </delete>
+
+</mapper>
+

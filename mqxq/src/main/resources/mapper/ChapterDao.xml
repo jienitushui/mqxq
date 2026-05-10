@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.ChapterDao">
+
+    <resultMap type="com.jieni.mqxq.domain.entity.Chapter" id="ChapterMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="courseId" column="course_id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 基础列定义 -->
+    <sql id="Base_Column_List">
+        id, course_id, title, create_time, create_user, update_time, update_user
+    </sql>
+
+    <!-- 通用查询条件 -->
+    <sql id="Common_Where_Clause">
+        <where>
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="courseId != null">
+                AND course_id = #{courseId}
+            </if>
+            <if test="title != null and title != ''">
+                AND title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="createUser != null">
+                AND create_user = #{createUser}
+            </if>
+            <if test="updateUser != null">
+                AND update_user = #{updateUser}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询单个 -->
+    <select id="queryById" resultMap="ChapterMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM chapter
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询指定行数据 -->
+    <select id="queryAllByLimit" resultMap="ChapterMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM chapter
+        <include refid="Common_Where_Clause"/>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM chapter
+        <include refid="Common_Where_Clause"/>
+    </select>
+
+    <!-- 新增所有列 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO chapter(course_id, title, create_time, create_user, update_time, update_user)
+        VALUES (#{courseId}, #{title}, #{createTime}, #{createUser}, #{updateTime}, #{updateUser})
+    </insert>
+
+    <!-- 批量新增 -->
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO chapter(course_id, title, create_time, create_user, update_time, update_user)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.courseId}, #{entity.title}, #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser})
+        </foreach>
+    </insert>
+
+    <!-- 批量新增或更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO chapter(course_id, title, create_time, create_user, update_time, update_user)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.courseId}, #{entity.title}, #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        course_id = VALUES(course_id),
+        title = VALUES(title),
+        create_time = VALUES(create_time),
+        create_user = VALUES(create_user),
+        update_time = VALUES(update_time),
+        update_user = VALUES(update_user)
+    </insert>
+
+    <!-- 通过主键修改数据 -->
+    <update id="update">
+        UPDATE chapter
+        <set>
+            <if test="courseId != null">
+                course_id = #{courseId},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 通过主键删除 -->
+    <delete id="deleteById">
+        DELETE FROM chapter WHERE id = #{id}
+    </delete>
+
+</mapper>

@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.CourseCommentDao">
+
+    <!-- 基础结果映射 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.CourseComment" id="CourseCommentMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="courseId" column="course_id" jdbcType="INTEGER"/>
+        <result property="teacherId" column="teacher_id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="score" column="score" jdbcType="INTEGER"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 扩展结果映射，包含课程和用户信息 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.CourseComment" id="CourseCommentExtendMap" extends="CourseCommentMap">
+        <result property="courseName" column="course_name" jdbcType="VARCHAR"/>
+        <result property="teacherName" column="teacher_name" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_nickname" jdbcType="VARCHAR"/>
+        <result property="userAvatar" column="user_avatar" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, course_id, teacher_id, user_id, score, content, status, create_time, update_time
+    </sql>
+
+    <!-- 通用WHERE条件 -->
+    <sql id="Common_Where_Clause">
+        <if test="id != null">
+            AND id = #{id}
+        </if>
+        <if test="courseId != null">
+            AND course_id = #{courseId}
+        </if>
+        <if test="teacherId != null">
+            AND teacher_id = #{teacherId}
+        </if>
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        <if test="score != null">
+            AND score = #{score}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </sql>
+
+    <!-- 查询单个 -->
+    <select id="queryById" resultMap="CourseCommentExtendMap">
+        SELECT 
+            cc.id, cc.course_id, cc.teacher_id, cc.user_id, 
+            cc.score, cc.content, cc.status, cc.create_time, cc.update_time,
+            u.name AS user_nickname, 
+            u.avatar AS user_avatar
+        FROM course_comment cc
+        LEFT JOIN user u ON cc.user_id = u.id
+        WHERE cc.id = #{id}
+    </select>
+
+    <!-- 查询指定行数据 -->
+    <select id="queryAllByLimit" resultMap="CourseCommentExtendMap">
+        SELECT 
+            cc.id, cc.course_id, cc.teacher_id, cc.user_id, 
+            cc.score, cc.content, cc.status, cc.create_time, cc.update_time,
+            u.name AS user_nickname, 
+            u.avatar AS user_avatar
+        FROM course_comment cc
+        LEFT JOIN user u ON cc.user_id = u.id
+        <where>
+            <if test="id != null">
+                AND cc.id = #{id}
+            </if>
+            <if test="courseId != null">
+                AND cc.course_id = #{courseId}
+            </if>
+            <if test="teacherId != null">
+                AND cc.teacher_id = #{teacherId}
+            </if>
+            <if test="userId != null">
+                AND cc.user_id = #{userId}
+            </if>
+            <if test="score != null">
+                AND cc.score = #{score}
+            </if>
+            <if test="status != null">
+                AND cc.status = #{status}
+            </if>
+            <if test="content != null and content != ''">
+                AND cc.content LIKE CONCAT('%', #{content}, '%')
+            </if>
+        </where>
+        ORDER BY cc.create_time DESC
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM course_comment
+        <where>
+            <include refid="Common_Where_Clause"/>
+        </where>
+    </select>
+
+    <!-- 新增所有列 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO course_comment(course_id, teacher_id, user_id, score, content, status, create_time, update_time)
+        VALUES (#{courseId}, #{teacherId}, #{userId}, #{score}, #{content}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <!-- 批量新增 -->
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO course_comment(course_id, teacher_id, user_id, score, content, status, create_time, update_time)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.courseId}, #{entity.teacherId}, #{entity.userId}, 
+             #{entity.score}, #{entity.content}, #{entity.status}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+    </insert>
+
+    <!-- 批量新增或更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO course_comment(course_id, teacher_id, user_id, score, content, status, create_time, update_time)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.courseId}, #{entity.teacherId}, #{entity.userId}, 
+             #{entity.score}, #{entity.content}, #{entity.status}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            course_id = VALUES(course_id),
+            teacher_id = VALUES(teacher_id),
+            user_id = VALUES(user_id),
+            score = VALUES(score),
+            content = VALUES(content),
+            status = VALUES(status),
+            update_time = VALUES(update_time)
+    </insert>
+
+    <!-- 通过主键修改数据 -->
+    <update id="update">
+        UPDATE course_comment
+        <set>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="teacherId != null">teacher_id = #{teacherId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 通过主键删除 -->
+    <delete id="deleteById">
+        DELETE FROM course_comment WHERE id = #{id}
+    </delete>
+
+    <!-- 批量删除 -->
+    <delete id="batchDelete">
+        DELETE FROM course_comment 
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 根据参数查询 - 使用LIKE模糊查询 -->
+    <select id="queryByParams" resultMap="CourseCommentExtendMap">
+        SELECT 
+            cc.id, cc.course_id, cc.teacher_id, cc.user_id, 
+            cc.score, cc.content, cc.status, cc.create_time, cc.update_time,
+            u.name AS user_nickname, 
+            u.avatar AS user_avatar
+        FROM course_comment cc
+        LEFT JOIN user u ON cc.user_id = u.id
+        <where>
+            <if test="params.courseId != null">
+                AND cc.course_id = #{params.courseId}
+            </if>
+            <if test="params.userId != null">
+                AND cc.user_id = #{params.userId}
+            </if>
+            <if test="params.teacherId != null">
+                AND cc.teacher_id = #{params.teacherId}
+            </if>
+            <if test="params.status != null">
+                AND cc.status = #{params.status}
+            </if>
+            <if test="params.score != null">
+                AND cc.score = #{params.score}
+            </if>
+            <if test="params.keyword != null and params.keyword != ''">
+                AND (cc.content LIKE #{params.keyword} OR u.name LIKE #{params.keyword})
+            </if>
+        </where>
+        <if test="params.orderBy != null and params.orderBy != ''">
+            ORDER BY ${params.orderBy}
+        </if>
+        <if test="params.limit != null">
+            LIMIT #{params.limit}
+        </if>
+    </select>
+
+    <!-- 查询所有记录 -->
+    <select id="queryAll" resultMap="CourseCommentExtendMap">
+        SELECT 
+            cc.id, cc.course_id, cc.teacher_id, cc.user_id, 
+            cc.score, cc.content, cc.status, cc.create_time, cc.update_time,
+            u.name AS user_nickname, 
+            u.avatar AS user_avatar
+        FROM course_comment cc
+        LEFT JOIN user u ON cc.user_id = u.id
+        ORDER BY cc.create_time DESC
+    </select>
+
+    <!-- 教师查询评论 - 关联课程表和用户表 -->
+    <select id="queryCommentsForTeacher" resultMap="CourseCommentExtendMap">
+        SELECT 
+            cc.id, cc.course_id, cc.teacher_id, cc.user_id, 
+            cc.score, cc.content, cc.status, cc.create_time, cc.update_time,
+            c.title AS course_name,
+            u.name AS user_nickname, 
+            u.avatar AS user_avatar
+        FROM course_comment cc
+        LEFT JOIN course c ON cc.course_id = c.id
+        LEFT JOIN user u ON cc.user_id = u.id
+        WHERE c.create_user = #{params.teacherId}
+        <if test="params.courseId != null">
+            AND cc.course_id = #{params.courseId}
+        </if>
+        <if test="params.status != null">
+            AND cc.status = #{params.status}
+        </if>
+        <if test="params.score != null">
+            AND cc.score = #{params.score}
+        </if>
+        <if test="params.keyword != null and params.keyword != ''">
+            AND (cc.content LIKE #{params.keyword} OR u.name LIKE #{params.keyword})
+        </if>
+        <if test="params.orderBy != null and params.orderBy != ''">
+            ORDER BY ${params.orderBy}
+        </if>
+        <if test="params.orderBy == null or params.orderBy == ''">
+            ORDER BY cc.create_time DESC
+        </if>
+        <if test="params.limit != null">
+            LIMIT #{params.limit}
+        </if>
+    </select>
+
+    <!-- 管理员查询评论 - 关联课程和用户表 -->
+    <select id="queryForAdmin" resultMap="CourseCommentExtendMap">
+        SELECT 
+            cc.id, cc.course_id, cc.teacher_id, cc.user_id, 
+            cc.score, cc.content, cc.status, cc.create_time, cc.update_time,
+            c.title AS course_name,
+            u.name AS user_nickname, 
+            u.avatar AS user_avatar
+        FROM course_comment cc
+        LEFT JOIN course c ON cc.course_id = c.id
+        LEFT JOIN user u ON cc.user_id = u.id
+        <where>
+            <if test="params.courseId != null">
+                AND cc.course_id = #{params.courseId}
+            </if>
+            <if test="params.userId != null">
+                AND cc.user_id = #{params.userId}
+            </if>
+            <if test="params.status != null">
+                AND cc.status = #{params.status}
+            </if>
+            <if test="params.keyword != null and params.keyword != ''">
+                AND (cc.content LIKE #{params.keyword} 
+                    OR u.name LIKE #{params.keyword} 
+                    OR c.title LIKE #{params.keyword})
+            </if>
+        </where>
+        ORDER BY cc.create_time DESC
+    </select>
+
+    <!-- 获取评论趋势分析 -->
+    <select id="getCommentTrendAnalysis" resultType="java.util.Map">
+        SELECT 
+            DATE(create_time) AS date,
+            COUNT(id) AS commentCount,
+            AVG(score) AS averageScore
+        FROM course_comment
+        WHERE create_time >= #{params.startDate}
+        <if test="params.teacherId != null">
+            AND teacher_id = #{params.teacherId}
+        </if>
+        <if test="params.courseId != null">
+            AND course_id = #{params.courseId}
+        </if>
+        GROUP BY DATE(create_time)
+        ORDER BY date ASC
+    </select>
+
+    <!-- 获取课程评分排行 -->
+    <select id="getCourseRatingRank" resultType="java.util.Map">
+        SELECT 
+            c.id AS courseId,
+            c.title AS courseName,
+            COUNT(cc.id) AS commentCount,
+            ROUND(AVG(cc.score), 2) AS averageRating
+        FROM course_comment cc
+        INNER JOIN course c ON cc.course_id = c.id
+        WHERE cc.status = 1
+        GROUP BY c.id, c.title
+        HAVING commentCount > 0
+        ORDER BY averageRating DESC, commentCount DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 获取课程的平均评分 -->
+    <select id="getAverageRatingByCourseId" resultType="java.lang.Double">
+        SELECT COALESCE(AVG(score), 0.0) 
+        FROM course_comment 
+        WHERE course_id = #{courseId} AND status = 1
+    </select>
+
+    <!-- 批量更新状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE course_comment 
+        SET status = #{status}, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

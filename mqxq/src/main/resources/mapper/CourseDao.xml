@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.CourseDao">
+
+    <resultMap type="com.jieni.mqxq.domain.entity.Course" id="CourseMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="teacherId" column="teacher_id" jdbcType="INTEGER"/>
+        <result property="subjectId" column="subject_id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="price" column="price" jdbcType="NUMERIC"/>
+        <result property="lessonNum" column="lesson_num" jdbcType="INTEGER"/>
+        <result property="durationSum" column="duration_sum" jdbcType="INTEGER"/>
+        <result property="cover" column="cover" jdbcType="VARCHAR"/>
+        <result property="buyCount" column="buy_count" jdbcType="INTEGER"/>
+        <result property="viewCount" column="view_count" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="publishTime" column="publish_time" jdbcType="TIMESTAMP"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 完整字段列表 -->
+    <sql id="Base_Column_List">
+        id, teacher_id, subject_id, title, description, price, lesson_num, duration_sum, 
+        cover, buy_count, view_count, status, publish_time, create_time, create_user, 
+        update_time, update_user
+    </sql>
+
+    <!-- 简化字段列表（用于列表查询） -->
+    <sql id="Simple_Column_List">
+        id, teacher_id, subject_id, title, cover, price, buy_count, view_count, 
+        status, publish_time, create_time, update_time
+    </sql>
+
+    <!-- 通用查询条件 -->
+    <sql id="Base_Where_Clause">
+        <where>
+            <if test="course != null">
+                <if test="course.id != null">
+                    and id = #{course.id}
+                </if>
+                <if test="course.teacherId != null">
+                    and teacher_id = #{course.teacherId}
+                </if>
+                <if test="course.subjectId != null">
+                    and subject_id = #{course.subjectId}
+                </if>
+                <if test="course.title != null and course.title != ''">
+                    and title LIKE CONCAT('%', #{course.title}, '%')
+                </if>
+                <if test="course.status != null">
+                    and status = #{course.status}
+                </if>
+                <if test="course.price != null">
+                    and price = #{course.price}
+                </if>
+            </if>
+        </where>
+    </sql>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="CourseMap">
+        select
+            <include refid="Base_Column_List"/>
+        from course
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="CourseMap">
+        select
+            <include refid="Base_Column_List"/>
+        from course
+        <include refid="Base_Where_Clause"/>
+        order by create_time desc
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from course
+        <include refid="Base_Where_Clause"/>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into course(teacher_id, subject_id, title, description, price, lesson_num, 
+                          duration_sum, cover, buy_count, view_count, status, publish_time, 
+                          create_time, create_user, update_time, update_user)
+        values (#{teacherId}, #{subjectId}, #{title}, #{description}, #{price}, #{lessonNum}, 
+                #{durationSum}, #{cover}, #{buyCount}, #{viewCount}, #{status}, #{publishTime}, 
+                #{createTime}, #{createUser}, #{updateTime}, #{updateUser})
+    </insert>
+
+    <!--批量新增-->
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into course(teacher_id, subject_id, title, description, price, lesson_num, 
+                          duration_sum, cover, buy_count, view_count, status, publish_time, 
+                          create_time, create_user, update_time, update_user)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.teacherId}, #{entity.subjectId}, #{entity.title}, #{entity.description}, 
+         #{entity.price}, #{entity.lessonNum}, #{entity.durationSum}, #{entity.cover}, 
+         #{entity.buyCount}, #{entity.viewCount}, #{entity.status}, #{entity.publishTime}, 
+         #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser})
+        </foreach>
+    </insert>
+
+    <!--批量新增或更新-->
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into course(teacher_id, subject_id, title, description, price, lesson_num, 
+                          duration_sum, cover, buy_count, view_count, status, publish_time, 
+                          create_time, create_user, update_time, update_user)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.teacherId}, #{entity.subjectId}, #{entity.title}, #{entity.description}, 
+             #{entity.price}, #{entity.lessonNum}, #{entity.durationSum}, #{entity.cover}, 
+             #{entity.buyCount}, #{entity.viewCount}, #{entity.status}, #{entity.publishTime}, 
+             #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser})
+        </foreach>
+        on duplicate key update
+        teacher_id = values(teacher_id),
+        subject_id = values(subject_id),
+        title = values(title),
+        description = values(description),
+        price = values(price),
+        lesson_num = values(lesson_num),
+        duration_sum = values(duration_sum),
+        cover = values(cover),
+        buy_count = values(buy_count),
+        view_count = values(view_count),
+        status = values(status),
+        publish_time = values(publish_time),
+        create_time = values(create_time),
+        create_user = values(create_user),
+        update_time = values(update_time),
+        update_user = values(update_user)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update course
+        <set>
+            <if test="teacherId != null">
+                teacher_id = #{teacherId},
+            </if>
+            <if test="subjectId != null">
+                subject_id = #{subjectId},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="lessonNum != null">
+                lesson_num = #{lessonNum},
+            </if>
+            <if test="durationSum != null">
+                duration_sum = #{durationSum},
+            </if>
+            <if test="cover != null and cover != ''">
+                cover = #{cover},
+            </if>
+            <if test="buyCount != null">
+                buy_count = #{buyCount},
+            </if>
+            <if test="viewCount != null">
+                view_count = #{viewCount},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="publishTime != null">
+                publish_time = #{publishTime},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from course where id = #{id}
+    </delete>
+
+</mapper>

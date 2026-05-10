@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.OrdersDao">
+
+    <resultMap type="com.jieni.mqxq.domain.entity.Orders" id="OrdersMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="goodsId" column="goods_id" jdbcType="INTEGER"/>
+        <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
+        <result property="goodsImg" column="goods_img" jdbcType="VARCHAR"/>
+        <result property="goodsPrice" column="goods_price" jdbcType="NUMERIC"/>
+        <result property="orderNo" column="order_no" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="VARCHAR"/>
+        <result property="payNo" column="pay_no" jdbcType="VARCHAR"/>
+        <result property="payTime" column="pay_time" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 公共列定义 -->
+    <sql id="allColumn">
+        id, goods_id, goods_name, goods_img, goods_price, order_no, user_id, create_time, pay_no, pay_time, status
+    </sql>
+
+    <!-- 公共查询条件 -->
+    <sql id="commonWhere">
+        <if test="id != null">
+            AND id = #{id}
+        </if>
+        <if test="goodsId != null">
+            AND goods_id = #{goodsId}
+        </if>
+        <if test="goodsName != null and goodsName != ''">
+            AND goods_name LIKE CONCAT('%', #{goodsName}, '%')
+        </if>
+        <if test="orderNo != null and orderNo != ''">
+            AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </sql>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="OrdersMap">
+        SELECT <include refid="allColumn"/>
+        FROM orders
+        WHERE id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="OrdersMap">
+        SELECT <include refid="allColumn"/>
+        FROM orders
+        <where>
+            <include refid="commonWhere"/>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM orders
+        <where>
+            <include refid="commonWhere"/>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into orders(goods_id, goods_name, goods_img, goods_price, order_no, user_id, create_time, pay_no, pay_time, status)
+        values (#{goodsId}, #{goodsName}, #{goodsImg}, #{goodsPrice}, #{orderNo}, #{userId}, #{createTime}, #{payNo}, #{payTime}, #{status})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into orders(goods_id, goods_name, goods_img, goods_price, order_no, user_id, create_time, pay_no, pay_time, status)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.goodsId}, #{entity.goodsName}, #{entity.goodsImg}, #{entity.goodsPrice}, #{entity.orderNo}, #{entity.userId}, #{entity.createTime}, #{entity.payNo}, #{entity.payTime}, #{entity.status})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into orders(goods_id, goods_name, goods_img, goods_price, order_no, user_id, create_time, pay_no, pay_time, status)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.goodsId}, #{entity.goodsName}, #{entity.goodsImg}, #{entity.goodsPrice}, #{entity.orderNo}, #{entity.userId}, #{entity.createTime}, #{entity.payNo}, #{entity.payTime}, #{entity.status})
+        </foreach>
+        on duplicate key update
+        goods_id = values(goods_id),
+        goods_name = values(goods_name),
+        goods_img = values(goods_img),
+        goods_price = values(goods_price),
+        order_no = values(order_no),
+        user_id = values(user_id),
+        create_time = values(create_time),
+        pay_no = values(pay_no),
+        pay_time = values(pay_time),
+        status = values(status)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update orders
+        <set>
+            <if test="goodsId != null">
+                goods_id = #{goodsId},
+            </if>
+            <if test="goodsName != null and goodsName != ''">
+                goods_name = #{goodsName},
+            </if>
+            <if test="goodsImg != null and goodsImg != ''">
+                goods_img = #{goodsImg},
+            </if>
+            <if test="goodsPrice != null">
+                goods_price = #{goodsPrice},
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                order_no = #{orderNo},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="createTime != null and createTime != ''">
+                create_time = #{createTime},
+            </if>
+            <if test="payNo != null and payNo != ''">
+                pay_no = #{payNo},
+            </if>
+            <if test="payTime != null and payTime != ''">
+                pay_time = #{payTime},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from orders where id = #{id}
+    </delete>
+
+    <!--根据订单号查询订单-->
+    <select id="selectByOrderNo" resultMap="OrdersMap">
+        SELECT <include refid="allColumn"/>
+        FROM orders
+        WHERE order_no = #{orderNo}
+    </select>
+
+    <!--根据ID更新订单-->
+    <update id="updateById">
+        update orders
+        <set>
+            <if test="goodsId != null">
+                goods_id = #{goodsId},
+            </if>
+            <if test="goodsName != null and goodsName != ''">
+                goods_name = #{goodsName},
+            </if>
+            <if test="goodsImg != null and goodsImg != ''">
+                goods_img = #{goodsImg},
+            </if>
+            <if test="goodsPrice != null">
+                goods_price = #{goodsPrice},
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                order_no = #{orderNo},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="createTime != null and createTime != ''">
+                create_time = #{createTime},
+            </if>
+            <if test="payNo != null and payNo != ''">
+                pay_no = #{payNo},
+            </if>
+            <if test="payTime != null and payTime != ''">
+                pay_time = #{payTime},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!-- ========== 新增SQL映射 ========== -->
+
+    <!-- 根据用户ID查询订单列表 -->
+    <select id="queryByUserId" resultMap="OrdersMap">
+        SELECT <include refid="allColumn"/>
+        FROM orders
+        WHERE user_id = #{userId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 统计用户订单数量 -->
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(1)
+        FROM orders
+        WHERE user_id = #{userId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <!-- 查询所有订单 -->
+    <select id="queryAllOrders" resultMap="OrdersMap">
+        SELECT <include refid="allColumn"/>
+        FROM orders
+        <where>
+            <include refid="commonWhere"/>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 统计所有订单数量 -->
+    <select id="countAllOrders" resultType="int">
+        SELECT COUNT(1)
+        FROM orders
+        <if test="status != null and status != ''">
+            WHERE status = #{status}
+        </if>
+    </select>
+
+    <!-- 获取总收入 -->
+    <select id="getTotalRevenue" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(goods_price), 0)
+        FROM orders
+        WHERE status = 'DONE'
+    </select>
+
+    <!-- 获取最近订单 -->
+    <select id="getRecentOrders" resultMap="OrdersMap">
+        SELECT <include refid="allColumn"/>
+        FROM orders
+        ORDER BY create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 根据教师ID查询订单列表 -->
+    <select id="queryByTeacherId" resultMap="OrdersMap">
+        SELECT o.id, o.goods_id, o.goods_name, o.goods_img, o.goods_price, 
+               o.order_no, o.user_id, o.create_time, o.pay_no, o.pay_time, o.status
+        FROM orders o
+        INNER JOIN course c ON o.goods_id = c.id
+        WHERE c.teacher_id = #{teacherId}
+        <if test="courseId != null">
+            AND o.goods_id = #{courseId}
+        </if>
+        <if test="status != null and status != ''">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <!-- 根据课程ID查询订单列表 -->
+    <select id="queryByCourseId" resultMap="OrdersMap">
+        SELECT <include refid="allColumn"/>
+        FROM orders
+        WHERE goods_id = #{courseId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 验证课程所有权 -->
+    <select id="verifyCourseOwnership" resultType="boolean">
+        SELECT COUNT(1) > 0
+        FROM course
+        WHERE id = #{courseId} AND teacher_id = #{teacherId}
+    </select>
+
+    <!-- 统计教师订单数量 -->
+    <select id="countByTeacherId" resultType="int">
+        SELECT COUNT(1)
+        FROM orders o
+        INNER JOIN course c ON o.goods_id = c.id
+        WHERE c.teacher_id = #{teacherId}
+        <if test="status != null and status != ''">
+            AND o.status = #{status}
+        </if>
+    </select>
+
+    <!-- 获取教师收入 -->
+    <select id="getRevenueByTeacherId" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(o.goods_price), 0)
+        FROM orders o
+        INNER JOIN course c ON o.goods_id = c.id
+        WHERE c.teacher_id = #{teacherId} AND o.status = 'DONE'
+    </select>
+
+    <!-- 获取教师热销课程 -->
+    <select id="getTopCoursesByTeacherId" resultType="map">
+        SELECT 
+            c.id AS courseId,
+            c.title AS courseName,
+            c.cover AS courseImg,
+            COUNT(o.id) AS orderCount,
+            SUM(o.goods_price) AS totalRevenue
+        FROM orders o
+        INNER JOIN course c ON o.goods_id = c.id
+        WHERE c.teacher_id = #{teacherId} AND o.status = 'DONE'
+        GROUP BY c.id, c.title, c.cover
+        ORDER BY orderCount DESC, totalRevenue DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 根据用户ID和课程ID查询已完成订单 -->
+    <select id="selectByUserIdAndCourseIdDone" resultMap="OrdersMap">
+        SELECT <include refid="allColumn"/>
+        FROM orders
+        WHERE user_id = #{userId}
+          AND goods_id = #{courseId}
+          AND status = 'DONE'
+    </select>
+
+    <!-- 获取教师收入趋势 -->
+    <select id="getTeacherRevenueTrend" resultType="map">
+        SELECT 
+            DATE(o.pay_time) AS date,
+            SUM(o.goods_price) AS revenue
+        FROM orders o
+        INNER JOIN course c ON o.goods_id = c.id
+        WHERE c.teacher_id = #{teacherId} 
+            AND o.status = 'DONE'
+            AND o.pay_time IS NOT NULL
+            AND DATE(o.pay_time) >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        GROUP BY DATE(o.pay_time)
+        ORDER BY date ASC
+    </select>
+</mapper>
+

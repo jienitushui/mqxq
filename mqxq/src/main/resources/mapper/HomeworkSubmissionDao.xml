@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.HomeworkSubmissionDao">
+
+    <!-- 通用字段 -->
+    <sql id="Base_Column_List">
+        id, homework_id, student_id, content, attachment_url, submit_time,
+        score, max_score, teacher_comment, grade_time, grade_user, status,
+        create_time, create_user, update_time, update_user
+    </sql>
+
+    <!-- 扩展字段（包含学生姓名和作业标题） -->
+    <sql id="Extended_Column_List">
+        hs.id, hs.homework_id, hs.student_id, hs.content, hs.attachment_url, hs.submit_time,
+        hs.score, hs.max_score, hs.teacher_comment, hs.grade_time, hs.grade_user, hs.status,
+        hs.create_time, hs.create_user, hs.update_time, hs.update_user,
+        u.username as student_name,
+        ch.title as homework_title
+    </sql>
+
+    <!-- 通用查询条件 -->
+    <sql id="Common_Where_Clause">
+        <if test="params.homeworkId != null">
+            AND hs.homework_id = #{params.homeworkId}
+        </if>
+        <if test="params.studentId != null">
+            AND hs.student_id = #{params.studentId}
+        </if>
+        <if test="params.status != null">
+            AND hs.status = #{params.status}
+        </if>
+        <if test="params.studentName != null and params.studentName != ''">
+            AND u.username LIKE CONCAT('%', #{params.studentName}, '%')
+        </if>
+        <if test="params.homeworkTitle != null and params.homeworkTitle != ''">
+            AND ch.title LIKE CONCAT('%', #{params.homeworkTitle}, '%')
+        </if>
+        <if test="params.startDate != null and params.startDate != ''">
+            AND DATE(hs.submit_time) >= #{params.startDate}
+        </if>
+        <if test="params.endDate != null and params.endDate != ''">
+            AND DATE(hs.submit_time) &lt;= #{params.endDate}
+        </if>
+    </sql>
+
+    <!-- 结果映射 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.HomeworkSubmission" id="HomeworkSubmissionMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="homeworkId" column="homework_id" jdbcType="INTEGER"/>
+        <result property="studentId" column="student_id" jdbcType="INTEGER"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="attachmentUrl" column="attachment_url" jdbcType="VARCHAR"/>
+        <result property="submitTime" column="submit_time" jdbcType="TIMESTAMP"/>
+        <result property="score" column="score" jdbcType="DECIMAL"/>
+        <result property="maxScore" column="max_score" jdbcType="DECIMAL"/>
+        <result property="teacherComment" column="teacher_comment" jdbcType="VARCHAR"/>
+        <result property="gradeTime" column="grade_time" jdbcType="TIMESTAMP"/>
+        <result property="gradeUser" column="grade_user" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+        <result property="studentName" column="student_name" jdbcType="VARCHAR"/>
+        <result property="homeworkTitle" column="homework_title" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 查询单个 -->
+    <select id="queryById" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM homework_submission
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询指定行数据 -->
+    <select id="queryAllByLimit" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM homework_submission
+        <where>
+            <if test="homeworkSubmission.id != null">
+                AND id = #{homeworkSubmission.id}
+            </if>
+            <if test="homeworkSubmission.homeworkId != null">
+                AND homework_id = #{homeworkSubmission.homeworkId}
+            </if>
+            <if test="homeworkSubmission.studentId != null">
+                AND student_id = #{homeworkSubmission.studentId}
+            </if>
+            <if test="homeworkSubmission.status != null">
+                AND status = #{homeworkSubmission.status}
+            </if>
+        </where>
+        ORDER BY submit_time DESC
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM homework_submission
+        <where>
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="homeworkId != null">
+                AND homework_id = #{homeworkId}
+            </if>
+            <if test="studentId != null">
+                AND student_id = #{studentId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 新增所有列 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO homework_submission(
+            homework_id, student_id, content, attachment_url, submit_time, 
+            score, max_score, teacher_comment, grade_time, grade_user, status, 
+            create_time, create_user, update_time, update_user
+        )
+        VALUES (
+            #{homeworkId}, #{studentId}, #{content}, #{attachmentUrl}, #{submitTime}, 
+            #{score}, #{maxScore}, #{teacherComment}, #{gradeTime}, #{gradeUser}, #{status}, 
+            #{createTime}, #{createUser}, #{updateTime}, #{updateUser}
+        )
+    </insert>
+
+    <!-- 批量新增 -->
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO homework_submission(
+            homework_id, student_id, content, attachment_url, submit_time, 
+            score, max_score, teacher_comment, grade_time, grade_user, status, 
+            create_time, create_user, update_time, update_user
+        )
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (
+                #{entity.homeworkId}, #{entity.studentId}, #{entity.content}, 
+                #{entity.attachmentUrl}, #{entity.submitTime}, #{entity.score}, 
+                #{entity.maxScore}, #{entity.teacherComment}, #{entity.gradeTime}, 
+                #{entity.gradeUser}, #{entity.status}, #{entity.createTime}, 
+                #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 批量新增或更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO homework_submission(
+            homework_id, student_id, content, attachment_url, submit_time, 
+            score, max_score, teacher_comment, grade_time, grade_user, status, 
+            create_time, create_user, update_time, update_user
+        )
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (
+                #{entity.homeworkId}, #{entity.studentId}, #{entity.content}, 
+                #{entity.attachmentUrl}, #{entity.submitTime}, #{entity.score}, 
+                #{entity.maxScore}, #{entity.teacherComment}, #{entity.gradeTime}, 
+                #{entity.gradeUser}, #{entity.status}, #{entity.createTime}, 
+                #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        content = VALUES(content),
+        attachment_url = VALUES(attachment_url),
+        submit_time = VALUES(submit_time),
+        score = VALUES(score),
+        max_score = VALUES(max_score),
+        teacher_comment = VALUES(teacher_comment),
+        grade_time = VALUES(grade_time),
+        grade_user = VALUES(grade_user),
+        status = VALUES(status),
+        update_time = VALUES(update_time),
+        update_user = VALUES(update_user)
+    </insert>
+
+    <!-- 通过主键修改数据 -->
+    <update id="update">
+        UPDATE homework_submission
+        <set>
+            <if test="homeworkId != null">
+                homework_id = #{homeworkId},
+            </if>
+            <if test="studentId != null">
+                student_id = #{studentId},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+            <if test="attachmentUrl != null">
+                attachment_url = #{attachmentUrl},
+            </if>
+            <if test="submitTime != null">
+                submit_time = #{submitTime},
+            </if>
+            <if test="score != null">
+                score = #{score},
+            </if>
+            <if test="maxScore != null">
+                max_score = #{maxScore},
+            </if>
+            <if test="teacherComment != null">
+                teacher_comment = #{teacherComment},
+            </if>
+            <if test="gradeTime != null">
+                grade_time = #{gradeTime},
+            </if>
+            <if test="gradeUser != null">
+                grade_user = #{gradeUser},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 通过主键删除 -->
+    <delete id="deleteById">
+        DELETE FROM homework_submission WHERE id = #{id}
+    </delete>
+
+    <!-- 批量删除 -->
+    <delete id="batchDeleteByIds">
+        DELETE FROM homework_submission
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 根据作业ID和学生ID查询提交记录 -->
+    <select id="queryByHomeworkAndStudent" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM homework_submission
+        WHERE homework_id = #{homeworkId} AND student_id = #{studentId}
+    </select>
+
+    <!-- 查询提交记录（包含学生信息） - 支持模糊查询 -->
+    <select id="querySubmissionsWithStudentInfo" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Extended_Column_List"/>
+        FROM homework_submission hs
+        LEFT JOIN user u ON hs.student_id = u.id
+        LEFT JOIN course_homework ch ON hs.homework_id = ch.id
+        <where>
+            <include refid="Common_Where_Clause"/>
+        </where>
+        ORDER BY hs.submit_time DESC
+    </select>
+
+    <!-- 获取作业提交统计 -->
+    <select id="getSubmissionStats" resultType="java.util.Map">
+        SELECT
+            COUNT(*) as totalSubmissions,
+            COUNT(CASE WHEN status = 1 THEN 1 END) as gradedCount,
+            COUNT(CASE WHEN status = 0 THEN 1 END) as ungradedCount,
+            AVG(CASE WHEN score IS NOT NULL THEN score END) as avgScore
+        FROM homework_submission
+        WHERE homework_id = #{homeworkId}
+    </select>
+
+    <!-- 根据学生ID查询提交记录 -->
+    <select id="queryByStudentId" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM homework_submission
+        WHERE student_id = #{studentId}
+        ORDER BY submit_time DESC
+    </select>
+
+    <!-- 根据作业ID查询所有提交记录 -->
+    <select id="queryByHomeworkId" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM homework_submission
+        WHERE homework_id = #{homeworkId}
+        ORDER BY submit_time DESC
+    </select>
+
+    <!-- 根据条件查询 - 支持模糊查询和日期范围 -->
+    <select id="queryByParams" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Extended_Column_List"/>
+        FROM homework_submission hs
+        LEFT JOIN user u ON hs.student_id = u.id
+        LEFT JOIN course_homework ch ON hs.homework_id = ch.id
+        <where>
+            <include refid="Common_Where_Clause"/>
+        </where>
+        ORDER BY hs.submit_time DESC
+    </select>
+
+    <!-- 获取最近的提交记录 -->
+    <select id="getRecentSubmissions" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM homework_submission
+        ORDER BY submit_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 获取待批改的提交记录 -->
+    <select id="getPendingGradeSubmissions" resultMap="HomeworkSubmissionMap">
+        SELECT <include refid="Extended_Column_List"/>
+        FROM homework_submission hs
+        LEFT JOIN user u ON hs.student_id = u.id
+        LEFT JOIN course_homework ch ON hs.homework_id = ch.id
+        WHERE hs.status = 0
+        <if test="teacherId != null">
+            AND ch.create_user = #{teacherId}
+        </if>
+        ORDER BY hs.submit_time ASC
+    </select>
+
+</mapper>

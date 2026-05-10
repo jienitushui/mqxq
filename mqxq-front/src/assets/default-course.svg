@@ -1,0 +1,6 @@
+<svg width="300" height="200" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="300" height="200" fill="#F3F4F6"/>
+<rect x="125" y="75" width="50" height="50" fill="#D1D5D9"/>
+<rect x="135" y="95" width="30" height="10" fill="#9CA3AF"/>
+<text x="150" y="150" text-anchor="middle" fill="#6B7280" font-family="Arial, sans-serif" font-size="14">课程封面</text>
+</svg>

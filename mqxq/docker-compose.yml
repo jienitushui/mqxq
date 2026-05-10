@@ -1,0 +1,140 @@
+services:
+  # MySQL数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: mqxq-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Lvjiawei@264357
+      MYSQL_DATABASE: mqxq
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"  # MySQL数据库端口（不建议外网暴露）
+    volumes:
+      - ./docker-data/mysql:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+    command: 
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    networks:
+      - mqxq-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pLvjiawei@264357"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis服务
+  redis:
+    image: redis:7-alpine
+    container_name: mqxq-redis
+    restart: always
+    ports:
+      - "6379:6379"  # Redis缓存端口（不建议外网暴露）
+    command: redis-server --requirepass "Lvjiawei@264357" --appendonly yes
+    volumes:
+      - ./docker-data/redis:/data
+    networks:
+      - mqxq-network
+
+  # RabbitMQ服务
+  rabbitmq:
+    # 固定版本：RabbitMQ 3.7.4（该版本通常基于 Erlang/OTP 20.2.x 构建）
+    image: rabbitmq:3.7.4-management
+    container_name: mqxq-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: mqxq_admin
+      RABBITMQ_DEFAULT_PASS: Lvjiawei@264357
+      TZ: Asia/Shanghai
+      # 配置RabbitMQ监听所有网络接口（0.0.0.0），而不是只监听localhost
+      RABBITMQ_NODE_IP_ADDRESS: 0.0.0.0
+      # 配置心跳超时（秒）
+      RABBITMQ_HEARTBEAT: 60
+    ports:
+      - "5673:5672"   # RabbitMQ AMQP端口（不建议外网暴露）
+      - "15672:15672" # RabbitMQ管理界面端口（可选外网暴露）
+    volumes:
+      - ./docker-data/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - mqxq-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # MinIO对象存储服务
+  minio:
+    image: minio/minio:RELEASE.2021-12-09T06-19-41Z
+    container_name: mqxq-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: mqxq_admin
+      MINIO_ROOT_PASSWORD: Lvjiawei@264357
+      TZ: Asia/Shanghai
+    ports:
+      - "9000:9000"   # MinIO API端口（建议外网暴露）
+      - "9001:9001"   # MinIO控制台端口（可选外网暴露）
+    volumes:
+      - ./docker-data/minio:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - mqxq-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Elasticsearch服务
+  es2:
+    image: registry.cn-beijing.aliyuncs.com/itcast/elasticsearch:8.13.4
+    container_name: es2
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "19200:9200"  # Elasticsearch HTTP端口
+      - "19300:9300"  # Elasticsearch 传输端口
+    volumes:
+      - ./docker-data/es2/data:/usr/share/elasticsearch/data
+      - ./docker-data/es2/plugins:/usr/share/elasticsearch/plugins
+    privileged: true
+    networks:
+      - es2-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kibana服务
+  kibana2:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: kibana2
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es2:9200
+    ports:
+      - "15601:5601"  # Kibana Web界面端口
+    networks:
+      - es2-net
+    depends_on:
+      - es2
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  mqxq-network:
+    driver: bridge
+  es2-net:
+    driver: bridge
+

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.UserRoleDao">
+
+    <!-- 此文件保留用于扩展的SQL映射 -->
+    <!-- 主要的SQL映射已迁移到UserRoleDao.xml中 -->
+    
+    <!-- 如果需要添加特殊的业务查询，可以在此文件中定义 -->
+    
+</mapper>

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jieni.mqxq.dao.UserRoleDao">
+
+    <!-- 结果映射 -->
+    <resultMap type="com.jieni.mqxq.domain.entity.UserRole" id="UserRoleMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="roleId" column="role_id" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 用户角色关联详情结果映射（包含用户和角色信息） -->
+    <resultMap type="com.jieni.mqxq.domain.entity.UserRole" id="UserRoleDetailMap" extends="UserRoleMap">
+        <association property="user" javaType="com.jieni.mqxq.domain.entity.User">
+            <result property="id" column="user_id"/>
+            <result property="username" column="username"/>
+            <result property="nickname" column="nickname"/>
+            <result property="email" column="email"/>
+        </association>
+        <association property="role" javaType="com.jieni.mqxq.domain.entity.Role">
+            <result property="id" column="role_id"/>
+            <result property="roleName" column="role_name"/>
+            <result property="roleCode" column="role_code"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询条件 -->
+    <sql id="Base_Where_Clause">
+        <where>
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="roleId != null">
+                AND role_id = #{roleId}
+            </if>
+            <if test="createTime != null">
+                AND create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                AND update_time = #{updateTime}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, user_id, role_id, create_time, update_time
+    </sql>
+
+    <!-- 详情字段列表（包含用户和角色信息） -->
+    <sql id="Detail_Column_List">
+        ur.id, ur.user_id, ur.role_id, ur.create_time, ur.update_time,
+        u.username, u.nickname, u.email,
+        r.role_name, r.role_code
+    </sql>
+
+    <!-- ==================== 基础CRUD操作 ==================== -->
+
+    <!-- 根据ID查询单条数据 -->
+    <select id="queryById" resultMap="UserRoleMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_role
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询指定行数据 -->
+    <select id="queryAllByLimit" resultMap="UserRoleMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_role
+        <include refid="Base_Where_Clause"/>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 统计总行数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM user_role
+        <include refid="Base_Where_Clause"/>
+    </select>
+
+    <!-- 新增数据 -->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO user_role(user_id, role_id, create_time, update_time)
+        VALUES (#{userId}, #{roleId}, #{createTime}, #{updateTime})
+    </insert>
+
+    <!-- 修改数据 -->
+    <update id="update">
+        UPDATE user_role
+        <set>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="roleId != null">
+                role_id = #{roleId},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 通过主键删除数据 -->
+    <delete id="deleteById">
+        DELETE FROM user_role WHERE id = #{id}
+    </delete>
+
+    <!-- ==================== 批量操作 ==================== -->
+
+    <!-- 批量新增数据 -->
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO user_role(user_id, role_id, create_time, update_time)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.userId}, #{entity.roleId}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+    </insert>
+
+    <!-- 批量新增或按主键更新数据 -->
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO user_role(user_id, role_id, create_time, update_time)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.userId}, #{entity.roleId}, #{entity.createTime}, #{entity.updateTime})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        user_id = VALUES(user_id),
+        role_id = VALUES(role_id),
+        create_time = VALUES(create_time),
+        update_time = VALUES(update_time)
+    </insert>
+
+    <!-- 批量删除用户角色关联记录 -->
+    <delete id="deleteBatchByIds">
+        DELETE FROM user_role WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- ==================== 用户角色关联管理 ==================== -->
+
+    <!-- 通过用户ID删除用户角色关联 -->
+    <delete id="deleteByUserId">
+        DELETE FROM user_role WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 通过用户ID列表批量删除用户角色关联 -->
+    <delete id="deleteByUserIds">
+        DELETE FROM user_role WHERE user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <!-- 通过角色ID删除用户角色关联 -->
+    <delete id="deleteByRoleId">
+        DELETE FROM user_role WHERE role_id = #{roleId}
+    </delete>
+
+    <!-- 通过角色ID列表批量删除用户角色关联 -->
+    <delete id="deleteByRoleIds">
+        DELETE FROM user_role WHERE role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+
+    <!-- ==================== 角色权限查询 ==================== -->
+
+    <!-- 查询用户的角色名称列表 -->
+    <select id="getUserRoleNames" resultType="java.lang.String">
+        SELECT r.role_name
+        FROM user_role ur
+        LEFT JOIN role r ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.role_name
+    </select>
+
+    <!-- 查询用户的角色代码列表 -->
+    <select id="selectRolesByUserId" resultType="java.lang.String">
+        SELECT r.role_code
+        FROM user_role ur
+        LEFT JOIN role r ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.role_code
+    </select>
+
+    <!-- 查询用户的角色ID列表 -->
+    <select id="getUserRoleIds" resultType="java.lang.Integer">
+        SELECT role_id
+        FROM user_role
+        WHERE user_id = #{userId}
+        ORDER BY role_id
+    </select>
+
+    <!-- 查询拥有指定角色的用户ID列表 -->
+    <select id="getUserIdsByRoleId" resultType="java.lang.Integer">
+        SELECT user_id
+        FROM user_role
+        WHERE role_id = #{roleId}
+        ORDER BY user_id
+    </select>
+
+    <!-- 查询拥有指定角色代码的用户ID列表 -->
+    <select id="getUserIdsByRoleCode" resultType="java.lang.Integer">
+        SELECT ur.user_id
+        FROM user_role ur
+        LEFT JOIN role r ON ur.role_id = r.id
+        WHERE r.role_code = #{roleCode}
+        ORDER BY ur.user_id
+    </select>
+
+    <!-- 检查用户是否拥有指定角色 -->
+    <select id="existsUserRole" resultType="java.lang.Boolean">
+        SELECT COUNT(1) > 0
+        FROM user_role ur
+        LEFT JOIN role r ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId}
+        AND r.role_code = #{roleCode}
+    </select>
+
+    <!-- 统计用户拥有的角色数量 -->
+    <select id="countUserRoles" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM user_role ur
+        LEFT JOIN role r ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId}
+    </select>
+
+    <!-- 统计拥有指定角色的用户数量 -->
+    <select id="countUsersByRoleId" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM user_role
+        WHERE role_id = #{roleId}
+    </select>
+
+    <!-- ==================== 角色分配操作 ==================== -->
+
+    <!-- 插入用户角色关联（通过角色代码） -->
+    <insert id="insertUserRole">
+        INSERT INTO user_role (user_id, role_id, create_time, update_time)
+        SELECT #{userId}, r.id, NOW(), NOW()
+        FROM role r
+        WHERE r.role_code = #{roleCode}
+        LIMIT 1
+    </insert>
+
+    <!-- 批量插入用户角色关联（通过角色代码） -->
+    <insert id="insertUserRoles">
+        INSERT INTO user_role (user_id, role_id, create_time, update_time)
+        SELECT #{userId}, r.id, NOW(), NOW()
+        FROM role r
+        WHERE r.role_code IN
+        <foreach collection="roleCodes" item="roleCode" open="(" separator="," close=")">
+            #{roleCode}
+        </foreach>
+    </insert>
+
+    <!-- 删除用户指定角色关联（通过角色代码） -->
+    <delete id="deleteUserRole">
+        DELETE ur FROM user_role ur
+        LEFT JOIN role r ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId}
+        AND r.role_code = #{roleCode}
+    </delete>
+
+    <!-- 删除用户多个角色关联（通过角色代码） -->
+    <delete id="deleteUserRoles">
+        DELETE ur FROM user_role ur
+        LEFT JOIN role r ON ur.role_id = r.id
+        WHERE ur.user_id = #{userId}
+        AND r.role_code IN
+        <foreach collection="roleCodes" item="roleCode" open="(" separator="," close=")">
+            #{roleCode}
+        </foreach>
+    </delete>
+
+    <!-- ==================== 高级查询 ==================== -->
+
+    <!-- 分页查询用户角色关联详情（包含用户和角色信息） -->
+    <select id="queryUserRoleDetails" resultMap="UserRoleDetailMap">
+        SELECT <include refid="Detail_Column_List"/>
+        FROM user_role ur
+        LEFT JOIN user u ON ur.user_id = u.id
+        LEFT JOIN role r ON ur.role_id = r.id
+        <where>
+            <if test="id != null">
+                AND ur.id = #{id}
+            </if>
+            <if test="userId != null">
+                AND ur.user_id = #{userId}
+            </if>
+            <if test="roleId != null">
+                AND ur.role_id = #{roleId}
+            </if>
+            <if test="createTime != null">
+                AND ur.create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                AND ur.update_time = #{updateTime}
+            </if>
+        </where>
+        ORDER BY ur.create_time DESC
+    </select>
+
+    <!-- 查询用户角色关联统计信息 -->
+    <select id="queryUserRoleStatistics" resultType="java.util.Map">
+        SELECT 
+            r.role_name,
+            r.role_code,
+            COUNT(ur.user_id) as user_count,
+            MAX(ur.create_time) as last_assigned_time
+        FROM role r
+        LEFT JOIN user_role ur ON r.id = ur.role_id
+        GROUP BY r.id, r.role_name, r.role_code
+        ORDER BY user_count DESC, r.role_name
+    </select>
+
+    <!-- 查询最近分配的角色关联记录 -->
+    <select id="queryRecentUserRoles" resultMap="UserRoleMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_role
+        ORDER BY create_time DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
+

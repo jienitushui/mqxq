@@ -1,0 +1,336 @@
+server:
+  port: 9999
+  # 服务器主机地址（用于生成下载链接，默认：localhost）
+#  host: localhost
+  host: 159.75.11.181
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    #自定义swagger前端请求路径,输入http:localhost:8080/swagger-ui会自动重定向到swagger页面
+    path: /swagger-ui
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs  #swagger后端请求地址
+    enabled: true   #是否开启文档功能
+  group-configs: #分组配置,可配置多个分组
+    - group: 'default'             #分组名称
+      paths-to-match: '/**'        #配置需要匹配的路径
+      packages-to-scan: com.jieni.mqxq.controller    #配置要扫描包的路径,一般配置到启动类所在的包名
+    - group: 'auth-api'
+      paths-to-match: '/**'
+      packages-to-scan: com.jieni.mqxq.controller.auth
+    - group: 'admin-api'
+      paths-to-match: '/**'
+      packages-to-scan: com.jieni.mqxq.controller.admin
+    - group: 'teacher-api'
+      paths-to-match: '/**'
+      packages-to-scan: com.jieni.mqxq.controller.teacher
+    - group: 'user-api'
+      paths-to-match: '/**'
+      packages-to-scan: com.jieni.mqxq.controller.user
+    - group: 'public-api'
+      paths-to-match: '/**'
+      packages-to-scan: com.jieni.mqxq.controller.publicapi
+
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true    #开启knife4j,无需添加@EnableKnife4j注解
+  setting:
+    language: zh_cn   #中文
+    swagger-model-name: 实体列表   #默认为：Swagger Models
+  #开启Swagger的Basic认证功能,默认是false,开启后访问文档页面时会弹出用户名和密码输入框
+  basic:
+    enable: true
+    # Basic认证用户名
+    username: user
+    # Basic认证密码
+    password: Lvjiawei@264357
+
+spring:
+  cache: #缓存管理相关配置
+    type: redis  #采用redis进行缓存管理
+    redis: #针对redis作为缓存管理时的工作配置
+      use-key-prefix: true
+      key-prefix: cache_
+      cache-null-values: false
+      time-to-live: 100s
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+#    password: 123456
+    password: Lvjiawei@264357
+#    url: jdbc:mysql://localhost:3306/mqxq?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&maxLifetime=1800000&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://159.75.11.181:3306/mqxq?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&maxLifetime=1800000&allowPublicKeyRetrieval=true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  #  Rabbimq配置
+  rabbitmq:
+    # 主机名
+    host: 159.75.11.181
+    # 端口
+    port: 5673
+    # 虚拟主机（使用 / 表示默认虚拟主机）
+    virtual-host: /
+    # 用户名
+    username: mqxq_admin
+    # 密码
+    password: Lvjiawei@264357
+    # 连接超时配置（毫秒）
+    connection-timeout: 30000
+    # 请求心跳超时（秒），防止连接被关闭
+    requested-heartbeat: 60
+    # 启用详细日志（用于调试）
+    template:
+      mandatory: false
+    # 发布确认模式
+    publisher-confirm-type: correlated
+    # 发布返回确认
+    publisher-returns: true
+    # 监听器配置
+    listener:
+      simple:
+        # 自动确认模式
+        acknowledge-mode: auto
+        # 并发消费者数量
+        concurrency: 1
+        # 最大并发消费者数量
+        max-concurrency: 10
+        # 预取数量
+        prefetch: 1
+        # 自动启动（暂时禁用，等连接问题解决后再启用）
+        auto-startup: true
+        # 启动时延迟（毫秒），等待连接建立
+        startup-timeout: 30000
+        # 重试配置
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          max-interval: 10000
+          multiplier: 1.2
+  # redis配置
+  data:
+    redis:
+      database: 1
+      # Redis服务器地址
+#      host: 127.0.0.1
+      host: 159.75.11.181
+      # Redis服务器连接端口
+      port: 6379
+      # Redis服务器连接密码（默认为空）
+#      password: 123456
+      password: Lvjiawei@264357
+      # 连接超时时间
+      timeout: 10s
+      # 连接池配置
+      lettuce:
+        pool:
+          # 连接池最大连接数
+          max-active: 200
+          # 连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-wait: -1ms
+          # 连接池中的最大空闲连接
+          max-idle: 10
+          # 连接池中的最小空闲连接
+          min-idle: 0
+#          # 连接扫描间隔时间（毫秒）
+#          time-between-eviction-runs: 10s
+
+  elasticsearch:
+#    uris: http://localhost:19200
+    uris: http://159.75.11.181:19200
+
+  ai:
+    dashscope:
+      api-key: sk-e90a0b708410445cad345001dab94c43
+      chat:
+        options:
+#          model: deepseek-v3.2
+          model: glm-5
+#          model: qwen3-30b-a3b-instruct-2507
+#          model: qwq-32b
+#          model: qwen2.5-7b-instruct-1m
+      embedding:
+        options:
+          model: text-embedding-v3
+          dimensions: 1024
+    vectorstore: #向量库配置
+      elasticsearch: #使用ES作为向量库存储
+        initialize-schema: true  #开启初始化向量库结构
+        dimensions: 1024  #向量维度维度
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+#  mail:
+#    #qq邮箱固定如下
+#    host: smtp.qq.com
+#    #邮箱账号
+#    username: 3156093516@qq.com
+#    #授权码
+#    password: tbtjueqctibcdfji
+
+  mail:
+    # 下面这个是QQ邮箱host ， 企业邮箱 smtp.exmail.qq.com
+    host: smtp.qq.com
+    port: 465
+    # 你的QQ邮箱
+    username: 3156093516@qq.com
+    # 进入邮箱配置后得到的授权码
+    password: pxpcvlcfewaydcci
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          soketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+
+
+# Mybatis
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:mapper/*.xml
+
+sa-token:
+  # token 名称（同时也是 cookie 名称）
+  token-name: mqxqtoken
+  # token 有效期（单位：秒） 默认30天，-1 代表永久有效 3600 * 24 = 1天
+  timeout: 2592000
+  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
+  active-timeout: -1
+  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
+  is-concurrent: false
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  is-share: true
+  # token 风格（默认可取值：uuid、simple-uuid、random-32、random-64、random-128、tik）
+  token-style: simple-uuid
+  # 是否输出操作日志
+  is-log: true
+
+
+alipay:
+  # 应用ID  APPID
+  appId: 9021000138690502
+  appPrivateKey: MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCoVrhMGQDYcznJP9RwgM6B97OvSGDB8oHhWXuMmyDU08oRjp+5IKPCDS6/35IJp2Yz5FHzlX5eFsXlDIlzVipeCcM5nviL4CdsgYRKG8Sfk0PquGxHGvqOP1F0ypvh0FSEhxbWPs0bvzupYio9Z1peVpvJoguPeyuS/ZJQM9gfdXfJDbmEqswsj/BK3HS+wQPaLjYv5vuI6V4kBiLZDbncRKyLaVoGuwmCroUOjn+bO9C+faoVjKX9alnibd/ywVIM4vBs/QXgpBkyvCappyLq1An1sFxHjieO87tavLK9aqWPjtawlma/Iwuopi88fAI9zdEJxwgebJsYqTOk96HXAgMBAAECggEAM8M2uG+XyvbjdfaipFV3Ko+4ONXQqtKfDWQukXXCCq91GyD4DDz1Hd5f2bAtf7pxutMiP/xf9x6Zi2zndwevz2rBFR7E3n32oW7R9tfDBi6KW8qJwPOSx9rAeWEzvaQJ2RaQ9yAogbez6Mm+o1L8frWzAbVKSLxfEbvXGcJXWpSMo/gMRE9j+QPHADB31WHmLUML4/os2quagAaiOEQ+S4t4QtOSnbVuRfTwDoalotXj9UcQSRAYbk47mOUoaLHWMiRRdZA4nsnvXdBcb0VLB9/cBqmsOe7ZKIAQY1s/CyDmSnpqi915XOGaG6x+o1k3jQcRZFfxRwsGEiycrARAwQKBgQDUyEemFtw7/M3rgUe01Gd02f4X3+dD5W4GaLZweCOZThp9+Jaa67BUzO8YVVXz7gJfwNgwEKmpZ6ucfrP1dvlWNCA3onCSWXMNKyRfYIca4P99WMVPH+1M3c1YP1O1Wo/866itqkJO5AJR0ludrnYlI/R28shl2Y4vqTpBXlNgqwKBgQDKh5L0Rog7upWbc2hWjgzI1mdJnkbYmyR8rZPCPxeSr5PtjbFx9DgvOtbTBL8mO8Ndiii1eDqsHb1k/A50HVcw8orH6On4xkUXUEKWADx1OPLi6eEoJFZSaujkIXYrv74VVsE0odGJchvcUs2Jhzc3xm4no6FesxSFsNj1ax07hQKBgQCNX5AzKuciuCG8wkV5QNKIEbo/9JS8SLhka7gjW78TQZBaeArgXY3nmc2V1kTocA+FvSQmMzv2gRnFPW2lvmmFO9bYAAZZRjMp4asl74V0d19o0c0ueCD7PDcN1e1xBf265nxI/mFV9yoPYPtb9akrngrz6PT6rqRIyGAbRGeTRwKBgBFCZnqcvCVi7Db4Kc8egeZnpxu1+lGhPwXFAQ+PsuGURuX6qkGMz3Du8bm/8M5AT5DcIkX8vftG+YnulQi+K10Hfl408iN6Og8XjuUblgtjVAeUaNSz7AtQAxLV6y0lRPyqjQKAO8wbxlYLVGrA9CqzpVWJc0oPttMB1Ctt+mrFAoGBALcDR8qhNjzOYKkx60KhAnsp9+vCgLKa34pjuO5EyqfQPxdud7oxT8nUkrziVvt6NB5zuBf/Pl+TDqywgRngyrwI9dcVkn7YBveD3bnTMP2cxrdf26GECHmKySXzqWER53mS98G0Q4fzKJTKUyuohLUusfEYpbUC94PNsQrGj9gk
+  alipayPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApjGSVLz9Ky5Db46oyYvzhDpHYSuoWnSf9p2rcq4N5zKQR9hpn9WOQ59MHb4kzhqXnM8tSDFkdck/1ru+3OzGCNL4HZFqBBklOqKJk6athc5z74s+fhCKCJ5f/tJzcDWu70sZwmOc7DN1RIJztyrYkLyfBBHFtwa2OebIjRLh8mWym0jQaVIBeWoDKLmHyJ2F93MZLqwFGtFLpHwcDgnUjy8aLJrClg5pjQMjIzaIGvxctEjDIvudxVpUjeUiEn4YJ2CRxoPSt0Of+OxbGuxbcJBAwjDnKKNb0MMxJoH5cmJFEKKI+F9QH/L5lDCNHx9ogr0FX30ucpzFh8C/kgfwIwIDAQAB
+  # 本地的回调接口  必须是公网地址
+#  notifyUrl: http://mqxq.free.idcfengye.com/api/alipay/notify
+  notifyUrl: http://159.75.11.181:9999/api/alipay/notify
+
+#  appId：支付宝沙箱appid
+#  appPrivateKey：应用私钥
+#  alipayPublicKey：支付宝公钥
+#  notifyUrl格式：natapp代理的url + /alipay/notify
+#  例如：http://mbwxuj.natappfree.cc/alipay/notify
+
+
+minio:
+  #账号
+#  accessKey: minioadmin
+  accessKey: mqxq_admin
+  #密码
+#  secretKey: minioadmin
+  secretKey: Lvjiawei@264357
+  #桶名
+  bucket: mqxq
+  # 上传使用的路径
+#  endpoint: http://localhost:9000
+  endpoint: http://159.75.11.181:9000
+  # 返回拼接的路径
+#  readPath: http://localhost:9000
+  readPath: http://159.75.11.181:9000
+
+nickname: 码趣星球
+
+#404时的图片
+#用于注册后上传的默认头像
+#noFoundPath: http://localhost:9000/mqxq/png/404.png
+noFoundPath: http://159.75.11.181:9000/mqxq/png/404.png
+
+#url:
+#  img: D:\毕设\\图片\
+#  headImg: D:\毕设\图片\user\
+logging:
+  level:
+    com.jieni.mqxq: debug
+
+#url:
+#  img: /root/work/mqxq/img/
+#  headImg: /root/work/mqxq/img/user/
+
+#logging:
+#  file:
+#    name: /log/loging.log
+
+
+ai:
+  session:
+    title: Hello，我是码趣星球的AI助教
+    describe: 我是专为小创客们打造的智能编程伙伴！我能推荐有趣的编程课程、解答代码问题，还能帮你激发创意，一起在编程世界里冒险！
+    examples:
+      - title: "课程推荐"
+        describe: "有没有适合8岁孩子的编程课？"
+      - title: "课程推荐"
+        describe: "机器人编程和Scratch哪个更适合初学者？"
+      - title: "课程推荐"
+        describe: "孩子刚学完Scratch，接下来学什么好？"
+      - title: "课程推荐"
+        describe: "有哪些好玩的Python入门课程？"
+      - title: "课程报名"
+        describe: "我想报名《Scratch创意动画编程》"
+      - title: "课程报名"
+        describe: "《Python游戏开发入门》适合几岁孩子？"
+      - title: "课程报名"
+        describe: "《WeDo机器人搭建与编程》的课程价格是多少？"
+      - title: "课程报名"
+        describe: "报名参加《App Inventor手机应用开发》"
+      - title: "课程介绍"
+        describe: "请介绍一下《Scratch趣味游戏设计》这门课"
+      - title: "课程介绍"
+        describe: "《micro:bit智能硬件编程》一共有多少节课？"
+      - title: "课程介绍"
+        describe: "《Python海龟绘图》能学到什么内容？"
+      - title: "课程介绍"
+        describe: "《Scratch创意动画编程》适合零基础的孩子吗？"
+      - title: "知识讲解"
+        describe: "什么是循环语句？"
+      - title: "知识讲解"
+        describe: "Scratch里的变量有什么用？"
+      - title: "知识讲解"
+        describe: "Python中怎么画一个正方形？"
+      - title: "知识讲解"
+        describe: "if判断语句是什么意思？"
+      - title: "知识讲解"
+        describe: "什么是坐标系统？"
+      - title: "知识讲解"
+        describe: "Scratch里怎么让角色动起来？"
+      - title: "知识讲解"
+        describe: "列表和变量有什么区别？"
+      - title: "知识讲解"
+        describe: "怎么在Python里实现倒计时功能？"
+
+# searchAPI
+search-api:
+  api-key: sZopga6DFDkXTzxPnL9bmHD2
+
+# 文件清理配置
+file:
+  cleanup:
+    # 是否启用自动清理
+    enabled: true
+    # 文件保留时间（小时），超过此时间的文件将被删除
+    retention-hours: 24
+    # 清理任务执行时间（Cron表达式：秒 分 时 日 月 周）
+    # 默认每天凌晨3点执行
+    cron: "0 0 3 * * ?"
+    # 文件保存根目录（默认：项目根目录/tmp）
+    base-dir: ${user.dir}/tmp
