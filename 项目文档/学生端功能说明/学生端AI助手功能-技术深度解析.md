@@ -55,7 +55,7 @@
 | 展开全页 | N/A | "展开"按钮 → /chat?sessionId=... |
 | 缩放支持 | 无 | 8 手柄拖拽缩放（680-900 × 500-900） |
 | Auth 检查 | 路由守卫保证 | FAB 点击时检查 isAuthenticated |
-| 错误显示 | console.log | 追加为 assistant 消息 |
+| 错误显示 | console.error | 追加为 assistant 消息 |
 | Params 展示 | 非课程/订单参数显示 JSON 信息框 | 仅卡片渲染，无原始 JSON |
 
 ### 2.2 SSE 流式通信机制
@@ -128,9 +128,8 @@ const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g
 ┌──────────────────────────────┐
 │ [封面图]  课程名称            │
 │           详情(截断60字)      │
-│           X人购买  X浏览      │
-│           ¥价格  X课时+X分钟  │
-│                        [查看] │
+│           X人购买  X次浏览    │
+│           ¥价格  X课时 · X分钟/X小时 │
 └──────────────────────────────┘
 ```
 
@@ -138,9 +137,10 @@ const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g
 
 | 订单状态 | 卡片样式 | 操作按钮 |
 |---|---|---|
-| NOT_PAY | 状态标签(橙色) + 课程名+价格+时间 | "立即支付" → 支付宝 |
+| NOT_PAY | 状态标签(琥珀色/amber #fef3c7 #d97706) + 课程名+价格+时间 | "立即支付" → 支付宝、"查看详情" → 订单详情 |
 | PAID/DONE | 状态标签(绿色) + 课程名+价格+时间 | "查看详情" → 订单详情 |
-| CANCELLED/REFUNDED | 状态标签(灰色) + 课程名+价格+时间 | "查看详情" |
+| CANCELLED | 状态标签(红色 #fee2e2 #dc2626) + 课程名+价格+时间 | "查看详情" |
+| REFUNDED | 状态标签(靛蓝色 #e0e7ff #6366f1) + 课程名+价格+时间 | "查看详情" |
 | ERROR | 红色主题 + errorMessage + 提示 | "查看我的订单" → 订单列表 |
 
 **渲染优先级**：`orderCards.length > 0` 时隐藏 courseCards，`hasCourseInfo(params)` 为 true 时隐藏原始 JSON 展示。
@@ -156,7 +156,7 @@ const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g
 发送消息 → chatApi.chat({ question, sessionId }, onMessage, onParam, onError, onComplete)
 ├── POST /api/user/chat (SSE 流式)
 ├── 逐块接收 AI 回复 + 工具调用参数
-└── 完成后刷新侧栏会话列表
+└── 完成后刷新侧栏会话列表（仅ChatPage具备此行为，AIChatAssistant完成后不刷新侧栏）
 
 停止生成 → stopGeneration()
 ├── cancelChat()               // 客户端中断 fetch
@@ -170,7 +170,7 @@ const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g
 删除会话 → chatApi.deleteSession(sessionId)
 ├── DELETE /api/user/session/{sessionId}
 ├── 从列表中移除
-└── 若为当前会话 → 自动创建新会话
+└── 若为当前会话 → ChatPage回到欢迎页，AIChatAssistant自动创建新会话
 
 悬浮窗→全页 → openFullPage()
 ├── router.push('/chat?sessionId=' + currentSessionId)
@@ -221,7 +221,7 @@ let cancelChat: (() => void) | null = null  // 非响应式，仅命令式使用
 ### 3.2 SSE 流式聊天（`POST /api/user/chat`）
 
 ```
-请求体: { params: { question, sessionId } }
+请求体: { question, sessionId }
 │
 ┌─ 步骤1: 认证 + 构建 conversationId
 │  ├── StpUtil.getLoginId() → userId

@@ -12,9 +12,11 @@ src/api/
 │   ├── course.ts       # 课程相关类型
 │   ├── announcement.ts # 公告类型
 │   ├── carousel.ts     # 轮播图类型
+│   ├── chat.ts         # 聊天/AI相关类型
 │   ├── homework.ts     # 作业类型
 │   └── order.ts        # 订单类型
 ├── auth.ts             # 认证API
+├── chat.ts             # 聊天/AI助手API
 ├── public.ts           # 公共API（无需登录）
 ├── user.ts             # 用户API（需要登录）
 ├── file.ts             # 文件管理API
@@ -28,7 +30,7 @@ src/api/
 
 ```typescript
 // 导入特定API模块
-import { authApi, userApi, publicApi, fileApi, paymentApi } from '@/api'
+import { authApi, userApi, publicApi, fileApi, paymentApi, chatApi } from '@/api'
 
 // 导入类型定义
 import type { LoginRequest, Course, Order } from '@/api'
@@ -59,12 +61,10 @@ const registerData: RegisterRequest = {
   username: 'newuser',
   password: '123456',
   confirmPassword: '123456',
-  email: 'user@example.com',
-  nickname: '新用户',
   captcha: 'abcd',
   captchaKey: 'key123',
-  emailCode: '123456',
-  userType: 1 // 1-学生 2-教师
+  code: '123456', // 邮箱验证码
+  userType: '1' // '1'-学生 '2'-教师（字符串类型）
 }
 
 await authApi.register(registerData)
@@ -108,8 +108,8 @@ const myCourses = await userApi.getMyCourseList({
 const isPurchased = await userApi.checkPurchaseStatus(courseId)
 
 if (!isPurchased) {
-  // 购买课程
-  const order = await userApi.purchaseCourse(courseId)
+  // 创建课程订单
+  const order = await userApi.createCourseOrder(courseId)
   console.log('订单创建成功:', order)
 }
 ```
@@ -193,7 +193,7 @@ const orders = await userApi.getMyOrders({
 
 #### 取消订单
 ```typescript
-await userApi.cancelOrder(orderId)
+await userApi.cancelOrder(orderNo) // 参数为订单号字符串，非订单ID
 ```
 
 ## 错误处理
@@ -228,9 +228,9 @@ try {
 ## 注意事项
 
 1. **认证状态**：需要登录的API会自动检查token，过期会跳转到登录页
-2. **错误提示**：API错误会自动显示ElMessage提示
+2. **错误提示**：API拦截器通过console.error输出错误信息，页面组件中可使用ElMessage等提示
 3. **加载状态**：建议在组件中维护loading状态
-4. **分页数据**：列表接口返回PageResult类型，包含records、total等字段
+4. **分页数据**：列表接口返回分页数据，包含list/total/pageNum/pageSize等字段
 5. **文件上传**：使用FormData格式，自动设置Content-Type
 
 ## 示例：完整的课程购买流程
@@ -256,7 +256,7 @@ async function purchaseCourse(courseId: number) {
     }
 
     // 3. 创建订单
-    const order = await userApi.purchaseCourse(courseId)
+    const order = await userApi.createCourseOrder(courseId)
     ElMessage.success('订单创建成功')
 
     // 4. 发起支付

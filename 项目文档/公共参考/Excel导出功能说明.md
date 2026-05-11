@@ -2,11 +2,11 @@
 
 ## 概述
 
-已成功为项目集成 Apache POI 5.2.3，并实现了 6 个数据导出接口的完整功能。
+已成功为项目集成 Apache POI 5.2.3，并实现了 7 个数据导出接口的完整功能。
 
 ## 已实现的导出接口
 
-### 教师端（4个）
+### 教师端（5个）
 
 1. **导出课程评论**
    - 接口：`GET /api/teacher/comment/export/{courseId}`
@@ -32,15 +32,21 @@
    - 权限：教师角色
    - 导出字段：作业ID、作业标题、作业内容、课程ID、课程名称、满分、开始时间、截止时间、状态、创建时间、创建人
 
+5. **导出作业提交记录（作业管理）**
+   - 接口：`GET /api/teacher/homework-manage/export-submissions/{homeworkId}`
+   - 功能：导出指定作业的提交记录（通过作业管理模块）
+   - 权限：教师角色
+   - 导出字段：同教师端作业提交记录
+
 ### 管理员端（2个）
 
-5. **导出作业数据（管理员）**
+6. **导出作业数据（管理员）**
    - 接口：`GET /api/admin/homework/export?courseId=&teacherId=&status=`
    - 功能：导出所有作业数据（可按课程ID、教师ID、状态筛选）
    - 权限：管理员角色
    - 导出字段：同教师端作业数据
 
-6. **导出作业提交数据（管理员）**
+7. **导出作业提交数据（管理员）**
    - 接口：`GET /api/admin/homework-submission/export`
    - 功能：导出所有作业提交数据
    - 权限：管理员角色
@@ -157,7 +163,8 @@ axios({
 ### 快速测试步骤
 
 1. 启动项目：`mvn spring-boot:run`
-2. 访问 Swagger 文档：`http://localhost:9999/swagger-ui/index.html`（用户名：user，密码：123456）
+2. 访问 API 文档：`http://localhost:9999/doc.html`（Knife4j增强文档界面，用户名：user，密码见application.yml中knife4j.basic.password配置）
+   - 也可访问标准Swagger UI：`http://localhost:9999/swagger-ui/index.html`
 
 ### 教师端测试
 
@@ -167,6 +174,7 @@ axios({
 | 导出作业提交记录 | `GET /api/teacher/homework-submission/export/{homeworkId}` | homeworkId |
 | 导出课程学员 | `GET /api/teacher/my-course/export-students/{courseId}` | courseId |
 | 导出作业数据 | `GET /api/teacher/homework-manage/export` | courseId, status |
+| 导出作业提交记录(管理) | `GET /api/teacher/homework-manage/export-submissions/{homeworkId}` | homeworkId |
 
 ### 管理员端测试
 
