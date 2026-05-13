@@ -1,8 +1,8 @@
 server:
   port: 9999
   # 服务器主机地址（用于生成下载链接，默认：localhost）
-#  host: localhost
-  host: 159.75.11.181
+  host: localhost
+#  host: 159.75.11.181
 
 # springdoc-openapi项目配置
 springdoc:
@@ -59,10 +59,10 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-#    password: 123456
-    password: Lvjiawei@264357
-#    url: jdbc:mysql://localhost:3306/mqxq?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&maxLifetime=1800000&allowPublicKeyRetrieval=true
-    url: jdbc:mysql://159.75.11.181:3306/mqxq?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&maxLifetime=1800000&allowPublicKeyRetrieval=true
+    password: 123456
+#    password: Lvjiawei@264357
+    url: jdbc:mysql://localhost:3306/mqxq?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&maxLifetime=1800000&allowPublicKeyRetrieval=true
+#    url: jdbc:mysql://159.75.11.181:3306/mqxq?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&maxLifetime=1800000&allowPublicKeyRetrieval=true
   servlet:
     multipart:
       max-file-size: 100MB
@@ -70,15 +70,19 @@ spring:
   #  Rabbimq配置
   rabbitmq:
     # 主机名
-    host: 159.75.11.181
+    host: localhost
+#    host: 159.75.11.181
     # 端口
-    port: 5673
+    port: 5672
+#    port: 5673
     # 虚拟主机（使用 / 表示默认虚拟主机）
     virtual-host: /
     # 用户名
-    username: mqxq_admin
+    username: guest
+#    username: mqxq_admin
     # 密码
-    password: Lvjiawei@264357
+    password: guest
+#    password: Lvjiawei@264357
     # 连接超时配置（毫秒）
     connection-timeout: 30000
     # 请求心跳超时（秒），防止连接被关闭
@@ -117,13 +121,13 @@ spring:
     redis:
       database: 1
       # Redis服务器地址
-#      host: 127.0.0.1
-      host: 159.75.11.181
+      host: 127.0.0.1
+#      host: 159.75.11.181
       # Redis服务器连接端口
       port: 6379
       # Redis服务器连接密码（默认为空）
-#      password: 123456
-      password: Lvjiawei@264357
+      password: 123456
+#      password: Lvjiawei@264357
       # 连接超时时间
       timeout: 10s
       # 连接池配置
@@ -141,8 +145,8 @@ spring:
 #          time-between-eviction-runs: 10s
 
   elasticsearch:
-#    uris: http://localhost:19200
-    uris: http://159.75.11.181:19200
+    uris: http://localhost:19200
+#    uris: http://159.75.11.181:19200
 
   ai:
     dashscope:
@@ -223,8 +227,9 @@ alipay:
   appPrivateKey: MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCoVrhMGQDYcznJP9RwgM6B97OvSGDB8oHhWXuMmyDU08oRjp+5IKPCDS6/35IJp2Yz5FHzlX5eFsXlDIlzVipeCcM5nviL4CdsgYRKG8Sfk0PquGxHGvqOP1F0ypvh0FSEhxbWPs0bvzupYio9Z1peVpvJoguPeyuS/ZJQM9gfdXfJDbmEqswsj/BK3HS+wQPaLjYv5vuI6V4kBiLZDbncRKyLaVoGuwmCroUOjn+bO9C+faoVjKX9alnibd/ywVIM4vBs/QXgpBkyvCappyLq1An1sFxHjieO87tavLK9aqWPjtawlma/Iwuopi88fAI9zdEJxwgebJsYqTOk96HXAgMBAAECggEAM8M2uG+XyvbjdfaipFV3Ko+4ONXQqtKfDWQukXXCCq91GyD4DDz1Hd5f2bAtf7pxutMiP/xf9x6Zi2zndwevz2rBFR7E3n32oW7R9tfDBi6KW8qJwPOSx9rAeWEzvaQJ2RaQ9yAogbez6Mm+o1L8frWzAbVKSLxfEbvXGcJXWpSMo/gMRE9j+QPHADB31WHmLUML4/os2quagAaiOEQ+S4t4QtOSnbVuRfTwDoalotXj9UcQSRAYbk47mOUoaLHWMiRRdZA4nsnvXdBcb0VLB9/cBqmsOe7ZKIAQY1s/CyDmSnpqi915XOGaG6x+o1k3jQcRZFfxRwsGEiycrARAwQKBgQDUyEemFtw7/M3rgUe01Gd02f4X3+dD5W4GaLZweCOZThp9+Jaa67BUzO8YVVXz7gJfwNgwEKmpZ6ucfrP1dvlWNCA3onCSWXMNKyRfYIca4P99WMVPH+1M3c1YP1O1Wo/866itqkJO5AJR0ludrnYlI/R28shl2Y4vqTpBXlNgqwKBgQDKh5L0Rog7upWbc2hWjgzI1mdJnkbYmyR8rZPCPxeSr5PtjbFx9DgvOtbTBL8mO8Ndiii1eDqsHb1k/A50HVcw8orH6On4xkUXUEKWADx1OPLi6eEoJFZSaujkIXYrv74VVsE0odGJchvcUs2Jhzc3xm4no6FesxSFsNj1ax07hQKBgQCNX5AzKuciuCG8wkV5QNKIEbo/9JS8SLhka7gjW78TQZBaeArgXY3nmc2V1kTocA+FvSQmMzv2gRnFPW2lvmmFO9bYAAZZRjMp4asl74V0d19o0c0ueCD7PDcN1e1xBf265nxI/mFV9yoPYPtb9akrngrz6PT6rqRIyGAbRGeTRwKBgBFCZnqcvCVi7Db4Kc8egeZnpxu1+lGhPwXFAQ+PsuGURuX6qkGMz3Du8bm/8M5AT5DcIkX8vftG+YnulQi+K10Hfl408iN6Og8XjuUblgtjVAeUaNSz7AtQAxLV6y0lRPyqjQKAO8wbxlYLVGrA9CqzpVWJc0oPttMB1Ctt+mrFAoGBALcDR8qhNjzOYKkx60KhAnsp9+vCgLKa34pjuO5EyqfQPxdud7oxT8nUkrziVvt6NB5zuBf/Pl+TDqywgRngyrwI9dcVkn7YBveD3bnTMP2cxrdf26GECHmKySXzqWER53mS98G0Q4fzKJTKUyuohLUusfEYpbUC94PNsQrGj9gk
   alipayPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApjGSVLz9Ky5Db46oyYvzhDpHYSuoWnSf9p2rcq4N5zKQR9hpn9WOQ59MHb4kzhqXnM8tSDFkdck/1ru+3OzGCNL4HZFqBBklOqKJk6athc5z74s+fhCKCJ5f/tJzcDWu70sZwmOc7DN1RIJztyrYkLyfBBHFtwa2OebIjRLh8mWym0jQaVIBeWoDKLmHyJ2F93MZLqwFGtFLpHwcDgnUjy8aLJrClg5pjQMjIzaIGvxctEjDIvudxVpUjeUiEn4YJ2CRxoPSt0Of+OxbGuxbcJBAwjDnKKNb0MMxJoH5cmJFEKKI+F9QH/L5lDCNHx9ogr0FX30ucpzFh8C/kgfwIwIDAQAB
   # 本地的回调接口  必须是公网地址
+  notifyUrl: http://z44734a6.natappfree.cc/api/alipay/notify
 #  notifyUrl: http://mqxq.free.idcfengye.com/api/alipay/notify
-  notifyUrl: http://159.75.11.181:9999/api/alipay/notify
+#  notifyUrl: http://159.75.11.181:9999/api/alipay/notify
 
 #  appId：支付宝沙箱appid
 #  appPrivateKey：应用私钥
@@ -235,26 +240,26 @@ alipay:
 
 minio:
   #账号
-#  accessKey: minioadmin
-  accessKey: mqxq_admin
+  accessKey: minioadmin
+#  accessKey: mqxq_admin
   #密码
-#  secretKey: minioadmin
-  secretKey: Lvjiawei@264357
+  secretKey: minioadmin
+#  secretKey: Lvjiawei@264357
   #桶名
   bucket: mqxq
   # 上传使用的路径
-#  endpoint: http://localhost:9000
-  endpoint: http://159.75.11.181:9000
+  endpoint: http://localhost:9000
+#  endpoint: http://159.75.11.181:9000
   # 返回拼接的路径
-#  readPath: http://localhost:9000
-  readPath: http://159.75.11.181:9000
+  readPath: http://localhost:9000
+#  readPath: http://159.75.11.181:9000
 
 nickname: 码趣星球
 
 #404时的图片
 #用于注册后上传的默认头像
-#noFoundPath: http://localhost:9000/mqxq/png/404.png
-noFoundPath: http://159.75.11.181:9000/mqxq/png/404.png
+noFoundPath: http://localhost:9000/mqxq/png/404.png
+#noFoundPath: http://159.75.11.181:9000/mqxq/png/404.png
 
 #url:
 #  img: D:\毕设\\图片\

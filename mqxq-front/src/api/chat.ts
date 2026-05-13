@@ -10,8 +10,8 @@ import type {
 import { ChatEventType } from './types/chat'
 
 const API_BASE = '/api/user'
-// const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9999'
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://159.75.11.181:9999'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9999'
+// const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://159.75.11.181:9999'
 
 /**
  * 聊天会话 API

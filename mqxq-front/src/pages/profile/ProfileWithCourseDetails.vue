@@ -248,8 +248,8 @@ const userTypeText = computed(() => {
   return roles[0] || '用户'
 })
 
-// const uploadUrl = computed(() => 'http://localhost:9999/api/public/files/avatar')
-const uploadUrl = computed(() => 'http://159.75.11.181:9999/api/public/files/avatar')
+const uploadUrl = computed(() => 'http://localhost:9999/api/public/files/avatar')
+// const uploadUrl = computed(() => 'http://159.75.11.181:9999/api/public/files/avatar')
 const uploadHeaders = computed(() => {
   const token = localStorage.getItem('mqxqtoken') || authStore.accessToken
   return {

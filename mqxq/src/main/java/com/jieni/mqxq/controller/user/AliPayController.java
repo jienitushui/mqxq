@@ -110,8 +110,8 @@ public class AliPayController {
         request.setBizContent(bizContent.toString());
         
         // 设置同步跳转地址，支付完成后用户浏览器会跳转到此页面
-//        request.setReturnUrl("http://localhost:5173/orders/OrderList");
-        request.setReturnUrl("http://159.75.11.181:5173/orders/OrderList");
+        request.setReturnUrl("http://localhost:5173/orders/OrderList");
+//        request.setReturnUrl("http://159.75.11.181:5173/orders/OrderList");
         // 3. 执行支付请求，生成支付表单
         String form = "";
         try {

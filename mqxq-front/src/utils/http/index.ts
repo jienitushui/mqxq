@@ -3,8 +3,8 @@ import { setupInterceptors } from './interceptors'
 
 export function createAxios(options = {}) {
   const defaultOptions = {
-    // baseURL: 'http://localhost:9999',
-    baseURL: 'http://159.75.11.181:9999',
+    baseURL: 'http://localhost:9999',
+    // baseURL: 'http://159.75.11.181:9999',
     timeout: 12000,
     // withCredentials: true, // 自动发送cookie
     headers: {

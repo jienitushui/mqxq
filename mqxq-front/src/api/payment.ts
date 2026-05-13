@@ -6,8 +6,9 @@ export const paymentApi = {
   // 发起支付宝支付
   alipayPay(orderNo: string): Promise<void> {
     // 直接跳转到支付页面
+    window.location.href = `http://z44734a6.natappfree.cc/api/alipay/pay?orderNo=${orderNo}`
     // window.location.href = `http://mqxq.free.idcfengye.com/api/alipay/pay?orderNo=${orderNo}`
-    window.location.href = `http://159.75.11.181:9999/api/alipay/pay?orderNo=${orderNo}`
+    // window.location.href = `http://159.75.11.181:9999/api/alipay/pay?orderNo=${orderNo}`
     return Promise.resolve()
   },
 

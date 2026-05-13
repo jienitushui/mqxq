@@ -305,8 +305,8 @@ const userTypeText = computed(() => {
 });
 
 const uploadUrl = computed(
-  // () => "http://localhost:9999/api/public/files/avatar"
-  () => "http://159.75.11.181:9999/api/public/files/avatar"
+  () => "http://localhost:9999/api/public/files/avatar"
+  // () => "http://159.75.11.181:9999/api/public/files/avatar"
 );
 const uploadHeaders = computed(() => {
   const token = localStorage.getItem("mqxqtoken") || authStore.accessToken;
