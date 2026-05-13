@@ -164,8 +164,6 @@ docker-compose up -d
 # 建表脚本已挂载到 Docker MySQL 的 initdb 目录
 # 或手动执行：
 mysql -u root -p < mqxq/sql/mqxq结构.sql
-mysql -u root -p < mqxq/sql/create_chat_message_table.sql
-mysql -u root -p < mqxq/sql/add_unique_index_course_view.sql
 ```
 
 ### 3. 启动后端

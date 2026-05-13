@@ -22,8 +22,6 @@ mqxq/
 ├── docker-compose.yml             # Docker Compose 编排
 ├── sql/                           # 数据库脚本
 │   ├── mqxq结构.sql                # 完整建表脚本
-│   ├── add_unique_index_course_view.sql
-│   └── create_chat_message_table.sql
 ├── src/main/java/com/jieni/mqxq/ # Java 源码
 ├── src/main/resources/
 │   ├── application.yml            # 主配置文件
