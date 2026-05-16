@@ -610,27 +610,27 @@ const handleAdd = () => {
 const handleEdit = async (row) => {
   // 添加加载状态，防止重复点击
   if (editLoading.value) return;
-  
+
   try {
     console.log("开始编辑课程，ID:", row.id);
-    
+
     // 显示编辑加载状态
     editLoading.value = true;
-    
+
     // 调用API获取课程详情
     const res = await api.getDetail(row.id);
     console.log("获取到的课程详情响应:", res);
-    
+
     // 根据拦截器逻辑，成功的响应直接返回 data 对象
     // 如果响应包含 data 字段，则使用 res.data，否则直接使用 res
     const courseData = res?.data || res;
-    
+
     if (!courseData) {
       throw new Error("未获取到课程数据");
     }
-    
+
     console.log("解析出的课程数据:", courseData);
-    
+
     // 重置表单数据，然后赋值
     Object.assign(formData, {
       id: courseData.id || row.id,
@@ -642,7 +642,7 @@ const handleEdit = async (row) => {
       lessonNum: Number(courseData.lessonNum) || 1,
       durationSum: Number(courseData.durationSum) || 0,
     });
-    
+
     console.log("映射后的表单数据:", formData);
 
     // 如果有封面图片，设置到文件列表中
@@ -662,10 +662,10 @@ const handleEdit = async (row) => {
 
     // 打开编辑弹窗
     showModal.value = true;
-    
+
   } catch (error) {
     console.error("获取课程详情失败:", error);
-    
+
     // 提供更详细的错误信息
     if (error?.response) {
       const { status, data } = error.response;
@@ -875,19 +875,19 @@ const handleUploadFinish = ({ file, event }) => {
 const deleteFileFromServer = async (fileUrl) => {
   try {
     if (!fileUrl) return;
-    
+
     // 从URL中提取文件路径，例如：http://localhost:9900/mxng/png/xxx.png -> mxng/png/xxx.png
     const url = new URL(fileUrl);
     const pathUrl = url.pathname.substring(1); // 移除开头的 '/'
-    
+
     const response = await fetch(`/api/public/files/delete?pathUrl=${encodeURIComponent(pathUrl)}`, {
       method: 'DELETE'
     });
-    
+
     if (!response.ok) {
       throw new Error(`删除失败: ${response.status}`);
     }
-    
+
     return true;
   } catch (error) {
     console.error('删除文件失败:', error);
@@ -903,7 +903,7 @@ const handleRemoveImage = async (file) => {
       await deleteFileFromServer(fileUrl);
       message.success('图片删除成功');
     }
-    
+
     formData.cover = "";
     coverFileList.value = [];
     return true;
@@ -917,7 +917,7 @@ const handleRemoveImage = async (file) => {
 const handleUploadError = ({ file, event }) => {
   console.error("上传失败:", event);
   message.error("图片上传失败，请重试");
-  
+
   // 移除失败的文件
   const index = coverFileList.value.findIndex(f => f.id === file.id);
   if (index > -1) {

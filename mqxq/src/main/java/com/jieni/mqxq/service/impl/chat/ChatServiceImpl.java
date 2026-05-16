@@ -105,7 +105,7 @@ public class ChatServiceImpl implements ChatService {
                 .system(promptSystem -> promptSystem
                         .text(SYSTEM_PROMPT) // 设置系统提示语
                 )
-                // 设置RAG查询，因为数据量不大，所以直接全部查询
+                // 设置RAG查询
                 .advisors(new QuestionAnswerAdvisor(vectorStore, SearchRequest.builder().query("").topK(10).similarityThreshold(0.7).build()))
                 .advisors(advisor -> advisor.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId))
                 .toolContext(MapUtil.<String, Object>builder() // 设置tool列表

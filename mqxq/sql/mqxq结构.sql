@@ -265,20 +265,6 @@ CREATE TABLE `homework_submission`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '作业提交表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for logs
--- ----------------------------
-DROP TABLE IF EXISTS `logs`;
-CREATE TABLE `logs`  (
-  `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `module` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '模块',
-  `operate` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '操作',
-  `user_id` int(0) NULL DEFAULT NULL COMMENT '操作人ID',
-  `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'IP',
-  `time` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '操作时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统日志' ROW_FORMAT = Dynamic;
-
--- ----------------------------
 -- Table structure for my_course
 -- ----------------------------
 DROP TABLE IF EXISTS `my_course`;
